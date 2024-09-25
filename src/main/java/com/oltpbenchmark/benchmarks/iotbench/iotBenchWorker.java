@@ -1,38 +1,25 @@
-/*
- * Copyright 2020 by OLTPBenchmark Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package com.oltpbenchmark.benchmarks.iotbench;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.*;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.DeleteRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.ReadModifyWriteRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.ReadRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.ScanRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.UpdateRecord;
 import com.oltpbenchmark.distributions.CounterGenerator;
 import com.oltpbenchmark.distributions.UniformGenerator;
 import com.oltpbenchmark.distributions.ZipfianGenerator;
 import com.oltpbenchmark.types.TransactionStatus;
-import com.oltpbenchmark.util.TextGenerator;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
- * iotBenchWorker Implementation I forget who really wrote this but I fixed it up in 2016...
+ * iotBenchWorker Implementation
  *
  * @author pavlo
  */
@@ -42,9 +29,8 @@ class iotBenchWorker extends Worker<iotBenchBenchmark> {
   private static CounterGenerator insertRecord;
   private final UniformGenerator randScan;
 
-  private final char[] data;
-  private final String[] params = new String[iotBenchConstants.NUM_FIELDS];
-  private final String[] results = new String[iotBenchConstants.NUM_FIELDS];
+  private final long[] params = new long[3]; // por enquanto timestamp, FIELD2, and FIELD3
+  private final String[] results = new String[3];
 
   private final UpdateRecord procUpdateRecord;
   private final ScanRecord procScanRecord;
@@ -55,7 +41,6 @@ class iotBenchWorker extends Worker<iotBenchBenchmark> {
 
   public iotBenchWorker(iotBenchBenchmark benchmarkModule, int id, int init_record_count) {
     super(benchmarkModule, id);
-    this.data = new char[benchmarkModule.fieldSize];
     this.readRecord =
         new ZipfianGenerator(
             rng(), init_record_count, benchmarkModule.skewFactor); // pool for read keys
@@ -70,12 +55,13 @@ class iotBenchWorker extends Worker<iotBenchBenchmark> {
 
     // This is a minor speed-up to avoid having to invoke the hashmap look-up
     // everytime we want to execute a txn. This is important to do on
-    // a client machine with not a lot of cores
-    this.procUpdateRecord = this.getProcedure(UpdateRecord.class);
+    // a client machine with not a lot of cores    this.procUpdateRecord =
+    // this.getProcedure(UpdateRecord.class);
     this.procScanRecord = this.getProcedure(ScanRecord.class);
     this.procReadRecord = this.getProcedure(ReadRecord.class);
     this.procReadModifyWriteRecord = this.getProcedure(ReadModifyWriteRecord.class);
     this.procInsertRecord = this.getProcedure(InsertRecord.class);
+    this.procUpdateRecord = this.getProcedure(UpdateRecord.class);
     this.procDeleteRecord = this.getProcedure(DeleteRecord.class);
   }
 
@@ -101,42 +87,43 @@ class iotBenchWorker extends Worker<iotBenchBenchmark> {
   }
 
   private void updateRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
+    long keyname = readRecord.nextInt();
     this.buildParameters();
-    this.procUpdateRecord.run(conn, keyname, this.params);
+    this.procUpdateRecord.run(conn, keyname, this.params[0], this.params[1], this.params[2]);
   }
 
   private void scanRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
+    long keyname = readRecord.nextInt();
     int count = randScan.nextInt();
     this.procScanRecord.run(conn, keyname, count, new ArrayList<>());
   }
 
   private void readRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
+    long keyname = readRecord.nextInt();
     this.procReadRecord.run(conn, keyname, this.results);
   }
 
   private void readModifyWriteRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
+    long keyname = readRecord.nextInt();
     this.buildParameters();
-    this.procReadModifyWriteRecord.run(conn, keyname, this.params, this.results);
+    this.procReadModifyWriteRecord.run(
+        conn, keyname, this.params[0], this.params[1], this.params[2], this.results);
   }
 
   private void insertRecord(Connection conn) throws SQLException {
-    int keyname = insertRecord.nextInt();
+    long keyname = insertRecord.nextInt();
     this.buildParameters();
-    this.procInsertRecord.run(conn, keyname, this.params);
+    this.procInsertRecord.run(conn, keyname, this.params[0], this.params[1]);
   }
 
   private void deleteRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
+    long keyname = readRecord.nextInt();
     this.procDeleteRecord.run(conn, keyname);
   }
 
   private void buildParameters() {
-    for (int i = 0; i < this.params.length; i++) {
-      this.params[i] = new String(TextGenerator.randomFastChars(rng(), this.data));
-    }
+    this.params[0] = (long) (Math.random() * 100);
+    this.params[1] = (long) (Math.random() * 100);
+    this.params[2] = (long) (Math.random() * 100);
   }
 }

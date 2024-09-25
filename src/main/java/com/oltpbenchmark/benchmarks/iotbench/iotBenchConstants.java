@@ -21,7 +21,7 @@ public abstract class iotBenchConstants {
 
   public static final int RECORD_COUNT = 1000;
 
-  public static final int NUM_FIELDS = 10;
+  public static final int NUM_FIELDS = 4;
 
   /**
    * The max size of each field in the USERTABLE. NOTE: If you increase this value here in the code,

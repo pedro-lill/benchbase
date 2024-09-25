@@ -21,7 +21,6 @@ import static com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants.TABLE_NAME
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
-import com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,17 +28,16 @@ import java.sql.SQLException;
 
 public class ReadRecord extends Procedure {
   public final SQLStmt readStmt =
-      new SQLStmt("SELECT * FROM " + TABLE_NAME + " WHERE iotBench_KEY=?");
+      new SQLStmt("SELECT FIELD1, FIELD2, FIELD3 FROM " + TABLE_NAME + " WHERE iotBench_KEY=?");
 
-  // FIXME: The value in ysqb is a byteiterator
-  public void run(Connection conn, int keyname, String[] results) throws SQLException {
+  public void run(Connection conn, long id, Object[] results) throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, readStmt)) {
-      stmt.setInt(1, keyname);
+      stmt.setLong(1, id);
       try (ResultSet r = stmt.executeQuery()) {
-        while (r.next()) {
-          for (int i = 0; i < iotBenchConstants.NUM_FIELDS; i++) {
-            results[i] = r.getString(i + 1);
-          }
+        if (r.next()) {
+          results[0] = r.getDouble("FIELD1");
+          results[1] = r.getDouble("FIELD2");
+          results[2] = r.getDouble("FIELD3");
         }
       }
     }

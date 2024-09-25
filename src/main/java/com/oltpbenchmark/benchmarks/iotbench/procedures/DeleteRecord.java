@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
 import static com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants.TABLE_NAME;
@@ -29,10 +28,9 @@ public class DeleteRecord extends Procedure {
   public final SQLStmt deleteStmt =
       new SQLStmt("DELETE FROM " + TABLE_NAME + " where iotBench_KEY=?");
 
-  // FIXME: The value in ysqb is a byteiterator
-  public void run(Connection conn, int keyname) throws SQLException {
+  public void run(Connection conn, long id) throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, deleteStmt)) {
-      stmt.setInt(1, keyname);
+      stmt.setLong(1, id);
       stmt.executeUpdate();
     }
   }

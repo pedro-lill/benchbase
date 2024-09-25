@@ -14,14 +14,12 @@
  * limitations under the License.
  *
  */
-
 package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
 import static com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants.TABLE_NAME;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
-import com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,20 +28,22 @@ import java.util.List;
 
 public class ScanRecord extends Procedure {
   public final SQLStmt scanStmt =
-      new SQLStmt("SELECT * FROM " + TABLE_NAME + " WHERE iotBench_KEY>? AND iotBench_KEY<?");
+      new SQLStmt(
+          "SELECT FIELD1, FIELD2, FIELD3 FROM "
+              + TABLE_NAME
+              + " WHERE iotBench_KEY>? AND iotBench_KEY<?");
 
-  // FIXME: The value in ysqb is a byteiterator
-  public void run(Connection conn, int start, int count, List<String[]> results)
+  public void run(Connection conn, long startId, long endId, List<Object[]> results)
       throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, scanStmt)) {
-      stmt.setInt(1, start);
-      stmt.setInt(2, start + count);
+      stmt.setLong(1, startId);
+      stmt.setLong(2, endId);
       try (ResultSet r = stmt.executeQuery()) {
         while (r.next()) {
-          String[] data = new String[iotBenchConstants.NUM_FIELDS];
-          for (int i = 0; i < data.length; i++) {
-            data[i] = r.getString(i + 1);
-          }
+          Object[] data = new Object[3]; // Temos 3 campos agora: FIELD1, FIELD2, FIELD3
+          data[0] = r.getDouble("FIELD1");
+          data[1] = r.getDouble("FIELD2");
+          data[2] = r.getDouble("FIELD3");
           results.add(data);
         }
       }

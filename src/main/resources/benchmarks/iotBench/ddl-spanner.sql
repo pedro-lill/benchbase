@@ -1,13 +1,6 @@
 CREATE TABLE usertable (
     iotBench_key INT64,
-    field1   STRING(100),
-    field2   STRING(100),
-    field3   STRING(100),
-    field4   STRING(100),
-    field5   STRING(100),
-    field6   STRING(100),
-    field7   STRING(100),
-    field8   STRING(100),
-    field9   STRING(100),
-    field10  STRING(100),
+    FIELD1 INT64,
+    FIELD2 FLOAT64,
+    FIELD3 FLOAT64,
 ) PRIMARY KEY (iotBench_key);

@@ -28,19 +28,17 @@ import java.sql.SQLException;
 public class UpdateRecord extends Procedure {
 
   public final SQLStmt updateAllStmt =
-      new SQLStmt(
-          "UPDATE "
-              + TABLE_NAME
-              + " SET FIELD1=?,FIELD2=?,FIELD3=?,FIELD4=?,FIELD5=?,"
-              + "FIELD6=?,FIELD7=?,FIELD8=?,FIELD9=?,FIELD10=? WHERE iotBench_KEY=?");
+      new SQLStmt("UPDATE" + TABLE_NAME + "SET FIELD1=?, FIELD2=?, FIELD3=? WHERE iotBench_KEY=?");
 
-  public void run(Connection conn, int keyname, String[] vals) throws SQLException {
+  public void run(Connection conn, long id, double FIELD1, double FIELD2, double FIELD3)
+      throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
+      // aqui eu defino os novos valores dos parâmetros da instrução SQL
+      stmt.setDouble(1, FIELD1);
+      stmt.setDouble(2, FIELD2);
+      stmt.setDouble(3, FIELD3);
+      stmt.setLong(4, id);
 
-      stmt.setInt(11, keyname);
-      for (int i = 0; i < vals.length; i++) {
-        stmt.setString(i + 1, vals[i]);
-      }
       stmt.executeUpdate();
     }
   }

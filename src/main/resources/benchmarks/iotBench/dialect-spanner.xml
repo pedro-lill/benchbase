@@ -8,7 +8,17 @@
         </procedure>
         <procedure name="InsertRecord">
             <statement name="insertStmt">
-                INSERT INTO usertable (iotBench_key, field1, field2, field3, field4, field5, field6, field7, field8, field9, field10) VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                INSERT INTO usertable (iotBench_key, timestamp, FIELD2, FIELD3) VALUES (?,?,?,?)
+            </statement>
+        </procedure>
+        <procedure name="UpdateRecord">
+            <statement name="updateAllStmt">
+                UPDATE usertable SET timestamp=?, FIELD2=?, FIELD3=? WHERE iotBench_key=?
+            </statement>
+        </procedure>
+        <procedure name="DeleteRecord">
+            <statement name="deleteStmt">
+                DELETE FROM usertable WHERE iotBench_key=?
             </statement>
         </procedure>
     </dialect>

@@ -3,17 +3,10 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS usertable;
 CREATE TABLE usertable (
-    iotBench_key int PRIMARY KEY,
-    field1   varchar(100),
-    field2   varchar(100),
-    field3   varchar(100),
-    field4   varchar(100),
-    field5   varchar(100),
-    field6   varchar(100),
-    field7   varchar(100),
-    field8   varchar(100),
-    field9   varchar(100),
-    field10  varchar(100)
+    iotBench_key INT PRIMARY KEY,
+    FIELD1 BIGINT,
+    FIELD2 DOUBLE,
+    FIELD3 DOUBLE
 );
 
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

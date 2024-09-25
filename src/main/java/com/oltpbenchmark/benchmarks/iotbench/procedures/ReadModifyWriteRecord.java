@@ -14,14 +14,12 @@
  * limitations under the License.
  *
  */
-
 package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
 import static com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants.TABLE_NAME;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
-import com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,37 +27,42 @@ import java.sql.SQLException;
 
 public class ReadModifyWriteRecord extends Procedure {
   public final SQLStmt selectStmt =
-      new SQLStmt("SELECT * FROM " + TABLE_NAME + " where iotBench_KEY=? FOR UPDATE");
+      new SQLStmt("SELECT * FROM" + TABLE_NAME + "WHERE iotBench_KEY=? FOR UPDATE");
+
   public final SQLStmt updateAllStmt =
       new SQLStmt(
           "UPDATE "
               + TABLE_NAME
-              + " SET FIELD1=?,FIELD2=?,FIELD3=?,FIELD4=?,FIELD5=?,"
-              + "FIELD6=?,FIELD7=?,FIELD8=?,FIELD9=?,FIELD10=? WHERE iotBench_KEY=?");
+              + " SET FIELD1 = ?, FIELD2 = ?, FIELD3 = ? "
+              + "WHERE iotBench_KEY=?");
 
-  // FIXME: The value in ysqb is a byteiterator
-  public void run(Connection conn, int keyname, String[] fields, String[] results)
+  public void run(
+      Connection conn,
+      long id,
+      double newFIELD1,
+      double newFIELD2,
+      double newFIELD3,
+      Object[] results)
       throws SQLException {
 
     // Fetch it!
     try (PreparedStatement stmt = this.getPreparedStatement(conn, selectStmt)) {
-      stmt.setInt(1, keyname);
+      stmt.setLong(1, id);
       try (ResultSet r = stmt.executeQuery()) {
-        while (r.next()) {
-          for (int i = 0; i < iotBenchConstants.NUM_FIELDS; i++) {
-            results[i] = r.getString(i + 1);
-          }
+        if (r.next()) {
+          results[0] = r.getDouble("FIELD1");
+          results[1] = r.getDouble("FIELD2");
+          results[2] = r.getDouble("FIELD3");
         }
       }
     }
 
-    // Update that mofo
+    // Update that record
     try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
-      stmt.setInt(11, keyname);
-
-      for (int i = 0; i < fields.length; i++) {
-        stmt.setString(i + 1, fields[i]);
-      }
+      stmt.setDouble(1, newFIELD1);
+      stmt.setDouble(2, newFIELD2);
+      stmt.setDouble(3, newFIELD3);
+      stmt.setLong(4, id);
       stmt.executeUpdate();
     }
   }

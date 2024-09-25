@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
 import static com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants.TABLE_NAME;
@@ -27,16 +26,18 @@ import java.sql.SQLException;
 
 public class InsertRecord extends Procedure {
   public final SQLStmt insertStmt =
-      new SQLStmt("INSERT INTO " + TABLE_NAME + " VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+      new SQLStmt("INSERT INTO " + TABLE_NAME + " (FIELD1, FIELD2, FIELD3) VALUES (?, ?, ?)");
 
-  // FIXME: The value in ysqb is a byteiterator
-  public void run(Connection conn, int keyname, String[] vals) throws SQLException {
+  public void run(Connection conn, double FIELD1, double FIELD2, double FIELD3)
+      throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, this.insertStmt)) {
-      stmt.setInt(1, keyname);
-      for (int i = 0; i < vals.length; i++) {
-        stmt.setString(i + 2, vals[i]);
-      }
+      stmt.setDouble(1, FIELD1);
+      stmt.setDouble(2, FIELD2);
+      stmt.setDouble(3, FIELD3);
       stmt.executeUpdate();
+    } catch (SQLException e) {
+      System.err.println("Error inserting record: " + e.getMessage());
+      throw e; // Re-throwing the exception after logging it
     }
   }
 }
