@@ -29,8 +29,8 @@ class iotBenchWorker extends Worker<iotBenchBenchmark> {
   private static CounterGenerator insertRecord;
   private final UniformGenerator randScan;
 
-  private final long[] params = new long[3]; // por enquanto timestamp, FIELD2, and FIELD3
-  private final String[] results = new String[3];
+  private final double[] params = new double[3];
+  private final double[] results = new double[3];
 
   private final UpdateRecord procUpdateRecord;
   private final ScanRecord procScanRecord;
@@ -87,43 +87,43 @@ class iotBenchWorker extends Worker<iotBenchBenchmark> {
   }
 
   private void updateRecord(Connection conn) throws SQLException {
-    long keyname = readRecord.nextInt();
+    int keyname = readRecord.nextInt();
     this.buildParameters();
     this.procUpdateRecord.run(conn, keyname, this.params[0], this.params[1], this.params[2]);
   }
 
   private void scanRecord(Connection conn) throws SQLException {
-    long keyname = readRecord.nextInt();
+    int keyname = readRecord.nextInt();
     int count = randScan.nextInt();
     this.procScanRecord.run(conn, keyname, count, new ArrayList<>());
   }
 
   private void readRecord(Connection conn) throws SQLException {
-    long keyname = readRecord.nextInt();
+    int keyname = readRecord.nextInt();
     this.procReadRecord.run(conn, keyname, this.results);
   }
 
   private void readModifyWriteRecord(Connection conn) throws SQLException {
-    long keyname = readRecord.nextInt();
+    int keyname = readRecord.nextInt();
     this.buildParameters();
     this.procReadModifyWriteRecord.run(
         conn, keyname, this.params[0], this.params[1], this.params[2], this.results);
   }
 
   private void insertRecord(Connection conn) throws SQLException {
-    long keyname = insertRecord.nextInt();
+    int keyname = insertRecord.nextInt();
     this.buildParameters();
-    this.procInsertRecord.run(conn, keyname, this.params[0], this.params[1]);
+    this.procInsertRecord.run(conn, keyname, this.params[0], this.params[1], this.params[2]);
   }
 
   private void deleteRecord(Connection conn) throws SQLException {
-    long keyname = readRecord.nextInt();
+    int keyname = readRecord.nextInt();
     this.procDeleteRecord.run(conn, keyname);
   }
 
   private void buildParameters() {
-    this.params[0] = (long) (Math.random() * 100);
-    this.params[1] = (long) (Math.random() * 100);
-    this.params[2] = (long) (Math.random() * 100);
+    this.params[0] = Math.random() * 100;
+    this.params[1] = Math.random() * 100;
+    this.params[2] = Math.random() * 100;
   }
 }

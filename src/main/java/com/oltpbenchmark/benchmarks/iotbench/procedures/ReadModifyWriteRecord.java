@@ -16,53 +16,58 @@
  */
 package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
-import static com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants.TABLE_NAME;
-
-import com.oltpbenchmark.api.Procedure;
-import com.oltpbenchmark.api.SQLStmt;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ReadModifyWriteRecord extends Procedure {
-  public final SQLStmt selectStmt =
-      new SQLStmt("SELECT * FROM" + TABLE_NAME + "WHERE iotBench_KEY=? FOR UPDATE");
+import com.oltpbenchmark.api.Procedure;
+import com.oltpbenchmark.api.SQLStmt;
+import static com.oltpbenchmark.benchmarks.iotbench.iotBenchConstants.TABLE_NAME;
 
+public class ReadModifyWriteRecord extends Procedure {
+  // SQL Statement para selecionar o registro
+  public final SQLStmt selectStmt =
+      new SQLStmt("SELECT * FROM " + TABLE_NAME + " WHERE iotBench_KEY=? FOR UPDATE");
+
+  // SQL Statement para atualizar o registro
   public final SQLStmt updateAllStmt =
       new SQLStmt(
-          "UPDATE "
-              + TABLE_NAME
-              + " SET FIELD1 = ?, FIELD2 = ?, FIELD3 = ? "
-              + "WHERE iotBench_KEY=?");
+          "UPDATE " + TABLE_NAME + " SET field1 = ?, field2 = ?, field3 = ? WHERE iotBench_KEY=?");
 
   public void run(
       Connection conn,
-      long id,
+      int keyname,
       double newFIELD1,
       double newFIELD2,
       double newFIELD3,
-      Object[] results)
+      double[] results)
       throws SQLException {
 
-    // Fetch it!
+    if (conn == null) {
+      throw new SQLException("Connection cannot be null");
+    }
+
+    // Fetch the current values
     try (PreparedStatement stmt = this.getPreparedStatement(conn, selectStmt)) {
-      stmt.setLong(1, id);
+      stmt.setInt(1, keyname);
       try (ResultSet r = stmt.executeQuery()) {
         if (r.next()) {
-          results[0] = r.getDouble("FIELD1");
-          results[1] = r.getDouble("FIELD2");
-          results[2] = r.getDouble("FIELD3");
+          results[0] = r.getDouble("field1");
+          results[1] = r.getDouble("field2");
+          results[2] = r.getDouble("field3");
+        } else {
+          throw new SQLException("No record found with the provided iotBench_KEY: " + keyname);
         }
       }
     }
 
-    // Update that record
+    // Update the record with new values
     try (PreparedStatement stmt = this.getPreparedStatement(conn, updateAllStmt)) {
+      stmt.setInt(4, keyname);
       stmt.setDouble(1, newFIELD1);
       stmt.setDouble(2, newFIELD2);
       stmt.setDouble(3, newFIELD3);
-      stmt.setLong(4, id);
       stmt.executeUpdate();
     }
   }

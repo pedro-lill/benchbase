@@ -28,10 +28,7 @@ import java.util.List;
 
 public class ScanRecord extends Procedure {
   public final SQLStmt scanStmt =
-      new SQLStmt(
-          "SELECT FIELD1, FIELD2, FIELD3 FROM "
-              + TABLE_NAME
-              + " WHERE iotBench_KEY>? AND iotBench_KEY<?");
+      new SQLStmt("SELECT * FROM " + TABLE_NAME + " WHERE iotBench_KEY>? AND iotBench_KEY<?");
 
   public void run(Connection conn, long startId, long endId, List<Object[]> results)
       throws SQLException {
@@ -41,9 +38,9 @@ public class ScanRecord extends Procedure {
       try (ResultSet r = stmt.executeQuery()) {
         while (r.next()) {
           Object[] data = new Object[3]; // Temos 3 campos agora: FIELD1, FIELD2, FIELD3
-          data[0] = r.getDouble("FIELD1");
-          data[1] = r.getDouble("FIELD2");
-          data[2] = r.getDouble("FIELD3");
+          data[0] = r.getDouble("field1");
+          data[1] = r.getDouble("field2");
+          data[2] = r.getDouble("field3");
           results.add(data);
         }
       }

@@ -1,8 +1,8 @@
 DROP TABLE IF EXISTS usertable;
 
 CREATE TABLE usertable (
-    id SERIAL PRIMARY KEY,
-    FIELD1 BIGINT NOT NULL,
-    FIELD2 DOUBLE PRECISION,
-    FIELD3 DOUBLE PRECISION
+    iotBench_KEY int PRIMARY KEY,
+    field1   double PRECISION,
+    field2   double PRECISION,
+    field3   double PRECISION
 );

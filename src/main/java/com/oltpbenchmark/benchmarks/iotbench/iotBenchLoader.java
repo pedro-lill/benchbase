@@ -14,13 +14,11 @@
  * limitations under the License.
  *
  */
-
 package com.oltpbenchmark.benchmarks.iotbench;
 
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.LoaderThread;
 import com.oltpbenchmark.catalog.Table;
-import com.oltpbenchmark.util.SQLUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -34,7 +32,7 @@ class iotBenchLoader extends Loader<iotBenchBenchmark> {
     super(benchmark);
     this.num_record = (int) Math.round(iotBenchConstants.RECORD_COUNT * this.scaleFactor);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("# of RECORDS:  {}", this.num_record);
+      LOG.debug("# of RECORDS: {}", this.num_record);
     }
   }
 
@@ -50,7 +48,7 @@ class iotBenchLoader extends Loader<iotBenchBenchmark> {
             @Override
             public void load(Connection conn) throws SQLException {
               if (LOG.isDebugEnabled()) {
-                LOG.debug(String.format("iotBenchLoadThread[%d, %d]", start, stop));
+                LOG.debug(String.format("IotBenchLoadThread[%d, %d]", start, stop));
               }
               loadRecords(conn, start, stop);
             }
@@ -61,51 +59,27 @@ class iotBenchLoader extends Loader<iotBenchBenchmark> {
   }
 
   private void loadRecords(Connection conn, int start, int stop) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("USERTABLE");
-    String sql = SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType());
+    Table catalog_tbl = benchmark.getCatalog().getTable("usertable");
 
+    String sql = "INSERT INTO usertable (iotBench_key, FIELD1, FIELD2, FIELD3) VALUES (?, ?, ?, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-      long total = 0;
       int batch = 0;
-
       for (int i = start; i < stop; i++) {
-        stmt.setInt(1, i);
-
-        for (int j = 0; j < iotBenchConstants.NUM_FIELDS; j++) {
-          int randomValue = (int) (Math.random() * 100);
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Setting field %d with value: %s", j + 1, randomValue));
-          }
-
-          try {
-            stmt.setInt(j + 1, randomValue); // This line tries to set the value
-          } catch (SQLException e) {
-            LOG.error("Erro ao setar o valor: {} para o campo {}", randomValue, j + 1, e);
-            throw e; // Rethrow for handling upstream
-          }
-        }
-
-        // Adicionando à batch
+        int iotBenchKey = start + i; // Isso garante que a chave será única
+        stmt.setInt(1, iotBenchKey); // A coluna IOTBENCH_KEY
+        stmt.setDouble(2, Math.random() * 100); // FIELD1
+        stmt.setDouble(3, Math.random() * 100); // FIELD2
+        stmt.setDouble(4, Math.random() * 100); // FIELD3
         stmt.addBatch();
-        total++;
+
         if (++batch >= workConf.getBatchSize()) {
           stmt.executeBatch();
           batch = 0;
-          if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Records Loaded %d / %d", total, this.num_record));
-          }
         }
       }
       if (batch > 0) {
         stmt.executeBatch();
-        System.out.println(stmt);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("Records Loaded %d / %d", total, this.num_record));
-        }
       }
-    } catch (SQLException e) {
-      LOG.error("Error loading records: ", e);
-      throw e; // Re-throw exception for handling upstream
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug("Finished loading {}", catalog_tbl.getName());

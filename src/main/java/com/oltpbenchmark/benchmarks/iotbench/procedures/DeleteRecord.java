@@ -28,9 +28,9 @@ public class DeleteRecord extends Procedure {
   public final SQLStmt deleteStmt =
       new SQLStmt("DELETE FROM " + TABLE_NAME + " where iotBench_KEY=?");
 
-  public void run(Connection conn, long id) throws SQLException {
+  public void run(Connection conn, int keyname) throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, deleteStmt)) {
-      stmt.setLong(1, id);
+      stmt.setInt(1, keyname);
       stmt.executeUpdate();
     }
   }
