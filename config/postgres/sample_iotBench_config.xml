@@ -42,7 +42,7 @@
             <name>InsertUserRecord</name>
         </transactiontype>
         <transactiontype>
-            <name>ListActiveSensorsPerRoom</name>
+            <name>GetActiveSensorsPerRoom </name>
         </transactiontype>
         <transactiontype>
             <name>GetSensorsAndDevicesFromRoom</name>

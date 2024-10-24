@@ -1,38 +1,46 @@
-/*
- * Copyright 2020 by OLTPBenchmark Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package com.oltpbenchmark.benchmarks.iotbench;
 
-public abstract class iotBenchConstants {
+public abstract class IotBenchConstants {
 
+  // Table names
+  public static final String TABLENAME_USERTABLE = "UserTable";
+  public static final String TABLENAME_HUB = "Hub";
+  public static final String TABLENAME_ROOM = "Room";
+  public static final String TABLENAME_DEVICE = "Device";
+  public static final String TABLENAME_SENSOR = "Sensor";
+  public static final String TABLENAME_SENSOR_LOG = "SensorLog";
+  public static final String TABLENAME_AUTOMATION_PROFILE = "AutomationProfile";
+  public static final String TABLENAME_ACTION_LOGS = "ActionLogs";
+  public static final String TABLE_NAME = "aa";
+
+  public static final int NUM_USERS = 1000;
+  public static final int NUM_HUBS = 100;
+  public static final int NUM_ROOMS = 500;
+  public static final int NUM_DEVICES = 2000;
+  public static final int NUM_SENSORS = 5000;
+
+  // Record count baseline
   public static final int RECORD_COUNT = 1000;
 
+  // Number of fields in the user table
   public static final int NUM_FIELDS = 4;
 
-  /**
-   * The max size of each field in the USERTABLE. NOTE: If you increase this value here in the code,
-   * then you must update all the DDL files.
-   */
+  // Maximum size for each field in the USERTABLE
   public static final int MAX_FIELD_SIZE = 100; // chars
 
-  /** How many records will each thread load. */
+  // Number of records to be loaded by each thread
   public static final int THREAD_BATCH_SIZE = 50000;
 
+  // Max number of scan operations
   public static final int MAX_SCAN = 1000;
 
-  public static final String TABLE_NAME = "usertable";
+  // Limits for data retrieval in different tables
+  public static int LIMIT_USERS = 100;
+  public static int LIMIT_HUBS = 10;
+  public static int LIMIT_DEVICES = 20;
+  public static int LIMIT_SENSORS = 50;
+
+  // Other relevant constants (if needed)
+  public static final int MAX_NAME_LENGTH = 255;
+  public static final int MAX_STATUS_LENGTH = 50;
 }

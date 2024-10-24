@@ -3,127 +3,110 @@ package com.oltpbenchmark.benchmarks.iotbench;
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.api.Worker;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.DeleteRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.ReadModifyWriteRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.ReadRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.ScanRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.UpdateRecord;
-import com.oltpbenchmark.distributions.CounterGenerator;
-import com.oltpbenchmark.distributions.UniformGenerator;
-import com.oltpbenchmark.distributions.ZipfianGenerator;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.GetActiveSensorsPerRoom;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.GetSensorsAndDevicesFromRoom;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertActionLogRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertSensorLogRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertSensorRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertUserRecord;
 import com.oltpbenchmark.types.TransactionStatus;
+import com.oltpbenchmark.util.RandomGenerator;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
-/**
- * iotBenchWorker Implementation
- *
- * @author pavlo
- */
-class iotBenchWorker extends Worker<iotBenchBenchmark> {
+class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
 
-  private final ZipfianGenerator readRecord;
-  private static CounterGenerator insertRecord;
-  private final UniformGenerator randScan;
+  private final RandomGenerator randScan;
 
-  private final double[] params = new double[3];
-  private final double[] results = new double[3];
+  // Procedimentos
+  private final GetSensorsAndDevicesFromRoom procGetSensorsAndDevicesFromRoom;
+  private final InsertSensorLogRecord procInsertSensorLogRecord;
+  private final InsertSensorRecord procInsertSensorRecord;
+  private final InsertActionLogRecord procInsertActionLogRecord;
+  private final InsertUserRecord procInsertUserRecord;
+  private final GetActiveSensorsPerRoom procGetActiveSensorsPerRoom; // Novo procedimento
 
-  private final UpdateRecord procUpdateRecord;
-  private final ScanRecord procScanRecord;
-  private final ReadRecord procReadRecord;
-  private final ReadModifyWriteRecord procReadModifyWriteRecord;
-  private final InsertRecord procInsertRecord;
-  private final DeleteRecord procDeleteRecord;
+  public IotBenchWorker(IotBenchBenchmark benchmarkModule, int id, int init_record_count) {
+    super(benchmarkModule, init_record_count);
 
-  public iotBenchWorker(iotBenchBenchmark benchmarkModule, int id, int init_record_count) {
-    super(benchmarkModule, id);
-    this.readRecord =
-        new ZipfianGenerator(
-            rng(), init_record_count, benchmarkModule.skewFactor); // pool for read keys
-    this.randScan = new UniformGenerator(1, iotBenchConstants.MAX_SCAN);
+    this.randScan = new RandomGenerator(init_record_count);
 
-    synchronized (iotBenchWorker.class) {
-      // We must know where to start inserting
-      if (insertRecord == null) {
-        insertRecord = new CounterGenerator(init_record_count);
-      }
-    }
-
-    // This is a minor speed-up to avoid having to invoke the hashmap look-up
-    // everytime we want to execute a txn. This is important to do on
-    // a client machine with not a lot of cores    this.procUpdateRecord =
-    // this.getProcedure(UpdateRecord.class);
-    this.procScanRecord = this.getProcedure(ScanRecord.class);
-    this.procReadRecord = this.getProcedure(ReadRecord.class);
-    this.procReadModifyWriteRecord = this.getProcedure(ReadModifyWriteRecord.class);
-    this.procInsertRecord = this.getProcedure(InsertRecord.class);
-    this.procUpdateRecord = this.getProcedure(UpdateRecord.class);
-    this.procDeleteRecord = this.getProcedure(DeleteRecord.class);
+    this.procGetSensorsAndDevicesFromRoom = this.getProcedure(GetSensorsAndDevicesFromRoom.class);
+    this.procInsertSensorLogRecord = this.getProcedure(InsertSensorLogRecord.class);
+    this.procInsertSensorRecord = this.getProcedure(InsertSensorRecord.class);
+    this.procInsertUserRecord = this.getProcedure(InsertUserRecord.class);
+    this.procInsertActionLogRecord = this.getProcedure(InsertActionLogRecord.class);
+    this.procGetActiveSensorsPerRoom = this.getProcedure(GetActiveSensorsPerRoom.class);
   }
 
   @Override
   protected TransactionStatus executeWork(Connection conn, TransactionType nextTrans)
       throws UserAbortException, SQLException {
+
+    // Identifica o tipo de transação a ser executada e chama o procedimento correspondente
     Class<? extends Procedure> procClass = nextTrans.getProcedureClass();
 
-    if (procClass.equals(DeleteRecord.class)) {
-      deleteRecord(conn);
-    } else if (procClass.equals(InsertRecord.class)) {
-      insertRecord(conn);
-    } else if (procClass.equals(ReadModifyWriteRecord.class)) {
-      readModifyWriteRecord(conn);
-    } else if (procClass.equals(ReadRecord.class)) {
-      readRecord(conn);
-    } else if (procClass.equals(ScanRecord.class)) {
-      scanRecord(conn);
-    } else if (procClass.equals(UpdateRecord.class)) {
-      updateRecord(conn);
+    if (procClass.equals(GetSensorsAndDevicesFromRoom.class)) {
+      getSensorsAndDevicesFromRoom(conn);
+    } else if (procClass.equals(InsertSensorLogRecord.class)) {
+      insertSensorLogRecord(conn);
+    } else if (procClass.equals(InsertSensorRecord.class)) {
+      insertSensorRecord(conn);
+    } else if (procClass.equals(InsertUserRecord.class)) {
+      insertUserRecord(conn);
+    } else if (procClass.equals(InsertActionLogRecord.class)) {
+      insertActionLogRecord(conn);
+    } else if (procClass.equals(GetActiveSensorsPerRoom.class)) { // Nova transação
+      GetActiveSensorsPerRoom(conn);
+    } else {
+      throw new RuntimeException("Unknown procedure class: " + procClass.getName());
     }
-    return (TransactionStatus.SUCCESS);
+
+    return TransactionStatus.SUCCESS;
   }
 
-  private void updateRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
-    this.buildParameters();
-    this.procUpdateRecord.run(conn, keyname, this.params[0], this.params[1], this.params[2]);
+  private void insertUserRecord(Connection conn) throws SQLException {
+    int userId = randScan.nextInt(1000);
+    String name = "User-" + userId;
+    String email = "user" + userId + "@iotbench.com";
+    String passwordHash = "hash" + userId;
+    int userType = randScan.nextInt(3) + 1;
+
+    this.procInsertUserRecord.run(conn, userId, name, email, passwordHash, userType);
   }
 
-  private void scanRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
-    int count = randScan.nextInt();
-    this.procScanRecord.run(conn, keyname, count, new ArrayList<>());
+  private void insertActionLogRecord(Connection conn) throws SQLException {
+    int logId = randScan.nextInt();
+    int userId = randScan.nextInt();
+    int deviceId = randScan.nextInt();
+    String action = "ACTIVATE";
+    String status = "SUCCESS";
+
+    this.procInsertActionLogRecord.run(conn, logId, userId, deviceId, action, status);
   }
 
-  private void readRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
-    this.procReadRecord.run(conn, keyname, this.results);
+  private void getSensorsAndDevicesFromRoom(Connection conn) throws SQLException {
+    int roomId = randScan.nextInt();
+    this.procGetSensorsAndDevicesFromRoom.run(conn, roomId);
   }
 
-  private void readModifyWriteRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
-    this.buildParameters();
-    this.procReadModifyWriteRecord.run(
-        conn, keyname, this.params[0], this.params[1], this.params[2], this.results);
+  private void insertSensorLogRecord(Connection conn) throws SQLException {
+    int sensorId = randScan.nextInt();
+    double sensorValue = randScan.nextDouble();
+    this.procInsertSensorLogRecord.run(conn, sensorId, sensorValue);
   }
 
-  private void insertRecord(Connection conn) throws SQLException {
-    int keyname = insertRecord.nextInt();
-    this.buildParameters();
-    this.procInsertRecord.run(conn, keyname, this.params[0], this.params[1], this.params[2]);
+  private void insertSensorRecord(Connection conn) throws SQLException {
+    int sensorId = randScan.nextInt();
+    String sensorName = "Sensor-" + sensorId;
+    int sensorType = randScan.nextInt(5);
+    double sensorValue = randScan.nextDouble();
+    int deviceId = randScan.nextInt();
+
+    this.procInsertSensorRecord.run(conn, sensorId, sensorName, sensorType, sensorValue, deviceId);
   }
 
-  private void deleteRecord(Connection conn) throws SQLException {
-    int keyname = readRecord.nextInt();
-    this.procDeleteRecord.run(conn, keyname);
-  }
-
-  private void buildParameters() {
-    this.params[0] = Math.random() * 100;
-    this.params[1] = Math.random() * 100;
-    this.params[2] = Math.random() * 100;
+  private void GetActiveSensorsPerRoom(Connection conn) throws SQLException {
+    this.procGetActiveSensorsPerRoom.run(conn);
   }
 }

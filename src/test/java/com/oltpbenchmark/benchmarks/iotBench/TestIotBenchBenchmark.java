@@ -14,24 +14,23 @@
  *  limitations under the License.                                            *
  ******************************************************************************/
 
-package com.oltpbenchmark.benchmarks.iotBench;
+package com.oltpbenchmark.benchmarks.iotbench;
 
 import com.oltpbenchmark.api.AbstractTestBenchmarkModule;
 import com.oltpbenchmark.api.Procedure;
-import com.oltpbenchmark.benchmarks.iotbench.iotBenchBenchmark;
 import com.oltpbenchmark.benchmarks.iotbench.procedures.*;
 import java.util.List;
 
-public class TestIotBenchBenchmark extends AbstractTestBenchmarkModule<iotBenchBenchmark> {
+public class TestIotBenchBenchmark extends AbstractTestBenchmarkModule<IotBenchBenchmark> {
 
   public static final List<Class<? extends Procedure>> PROCEDURE_CLASSES =
       List.of(
-          DeleteRecord.class,
-          InsertRecord.class,
-          ReadModifyWriteRecord.class,
-          ReadRecord.class,
-          ScanRecord.class,
-          UpdateRecord.class);
+          InsertSensorRecord.class,
+          InsertActionLogRecord.class,
+          InsertUserRecord.class,
+          GetSensorsAndDevicesFromRoom.class,
+          GetActiveSensorsPerRoom.class,
+          InsertSensorLogRecord.class);
 
   @Override
   public List<Class<? extends Procedure>> procedures() {
@@ -39,7 +38,7 @@ public class TestIotBenchBenchmark extends AbstractTestBenchmarkModule<iotBenchB
   }
 
   @Override
-  public Class<iotBenchBenchmark> benchmarkClass() {
-    return iotBenchBenchmark.class;
+  public Class<IotBenchBenchmark> benchmarkClass() {
+    return IotBenchBenchmark.class;
   }
 }

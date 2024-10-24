@@ -49,9 +49,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class iotBenchBenchmark extends BenchmarkModule {
+public final class IotBenchBenchmark extends BenchmarkModule {
 
-  private static final Logger LOG = LoggerFactory.getLogger(iotBenchBenchmark.class);
+  private static final Logger LOG = LoggerFactory.getLogger(IotBenchBenchmark.class);
 
   /** The length in characters of each field */
   protected final int fieldSize;
@@ -59,24 +59,24 @@ public final class iotBenchBenchmark extends BenchmarkModule {
   /** The constant used in the zipfian distribution (to modify the skew) */
   protected final double skewFactor;
 
-  public iotBenchBenchmark(WorkloadConfiguration workConf) {
+  public IotBenchBenchmark(WorkloadConfiguration workConf) {
     super(workConf);
 
-    int fieldSize = iotBenchConstants.MAX_FIELD_SIZE;
+    int fieldSize = IotBenchConstants.MAX_FIELD_SIZE;
     if (workConf.getXmlConfig() != null && workConf.getXmlConfig().containsKey("fieldSize")) {
       fieldSize =
-          Math.min(workConf.getXmlConfig().getInt("fieldSize"), iotBenchConstants.MAX_FIELD_SIZE);
+          Math.min(workConf.getXmlConfig().getInt("fieldSize"), IotBenchConstants.MAX_FIELD_SIZE);
     }
     this.fieldSize = fieldSize;
     if (this.fieldSize <= 0) {
-      throw new RuntimeException("Invalid iotBench fieldSize '" + this.fieldSize + "'");
+      throw new RuntimeException("Invalid IotBench fieldSize '" + this.fieldSize + "'");
     }
 
     double skewFactor = 0.99;
     if (workConf.getXmlConfig() != null && workConf.getXmlConfig().containsKey("skewFactor")) {
       skewFactor = workConf.getXmlConfig().getDouble("skewFactor");
       if (skewFactor <= 0 || skewFactor >= 1) {
-        throw new RuntimeException("Invalid iotBench skewFactor '" + skewFactor + "'");
+        throw new RuntimeException("Invalid IotBench skewFactor '" + skewFactor + "'");
       }
     }
     this.skewFactor = skewFactor;
@@ -89,7 +89,7 @@ public final class iotBenchBenchmark extends BenchmarkModule {
       // LOADING FROM THE DATABASE IMPORTANT INFORMATION
       // LIST OF USERS
       Table t = this.getCatalog().getTable("USERTABLE");
-      String userCount = SQLUtil.getMaxColSQL(this.workConf.getDatabaseType(), t, "iotBench_key");
+      String userCount = SQLUtil.getMaxColSQL(this.workConf.getDatabaseType(), t, "IotBench_key");
 
       try (Connection metaConn = this.makeConnection();
           Statement stmt = metaConn.createStatement();
@@ -100,7 +100,7 @@ public final class iotBenchBenchmark extends BenchmarkModule {
         }
 
         for (int i = 0; i < workConf.getTerminals(); ++i) {
-          workers.add(new iotBenchWorker(this, i, init_record_count + 1));
+          workers.add(new IotBenchWorker(this, i, init_record_count + 1));
         }
       }
     } catch (SQLException e) {
@@ -110,8 +110,8 @@ public final class iotBenchBenchmark extends BenchmarkModule {
   }
 
   @Override
-  protected Loader<iotBenchBenchmark> makeLoaderImpl() {
-    return new iotBenchLoader(this);
+  protected Loader<IotBenchBenchmark> makeLoaderImpl() {
+    return new IotBenchLoader(this);
   }
 
   @Override

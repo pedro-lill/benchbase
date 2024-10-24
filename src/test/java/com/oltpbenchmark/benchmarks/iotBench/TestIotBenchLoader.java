@@ -14,14 +14,13 @@
  *  limitations under the License.                                            *
  ******************************************************************************/
 
-package com.oltpbenchmark.benchmarks.iotBench;
+package com.oltpbenchmark.benchmarks.iotbench;
 
 import com.oltpbenchmark.api.AbstractTestLoader;
 import com.oltpbenchmark.api.Procedure;
-import com.oltpbenchmark.benchmarks.iotbench.iotBenchBenchmark;
 import java.util.List;
 
-public class TestIotBenchLoader extends AbstractTestLoader<iotBenchBenchmark> {
+public class TestIotBenchLoader extends AbstractTestLoader<IotBenchBenchmark> {
 
   @Override
   public List<Class<? extends Procedure>> procedures() {
@@ -29,7 +28,7 @@ public class TestIotBenchLoader extends AbstractTestLoader<iotBenchBenchmark> {
   }
 
   @Override
-  public Class<iotBenchBenchmark> benchmarkClass() {
-    return iotBenchBenchmark.class;
+  public Class<IotBenchBenchmark> benchmarkClass() {
+    return IotBenchBenchmark.class;
   }
 }
