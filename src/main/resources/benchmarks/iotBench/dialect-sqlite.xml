@@ -3,7 +3,7 @@
     <dialect type="SQLITE">
         <procedure name="ReadModifyWriteRecord">
             <statement name="selectStmt">
-                SELECT * FROM usertable WHERE iotBench_key=?
+                SELECT * FROM usertable WHERE IotBench_key=?
             </statement>
         </procedure>
     </dialect>

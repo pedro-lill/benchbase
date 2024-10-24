@@ -1,4 +1,4 @@
--- iotBench DDL for Timesten
+-- IotBench DDL for Timesten
 -- FIELDS ARE FIXED TO 100 Bytes
 
 BEGIN
@@ -11,9 +11,9 @@ EXCEPTION
 END;
 
 CREATE TABLE USERTABLE (
-  iotBench_KEY INT NOT NULL,
+  IotBench_KEY INT NOT NULL,
   FIELD1 NUMBER,
   FIELD2 NUMBER,
   FIELD3 NUMBER,
-  PRIMARY KEY (iotBench_KEY)
+  PRIMARY KEY (IotBench_KEY)
 );

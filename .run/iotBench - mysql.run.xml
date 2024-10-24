@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="iotBench - mysql" type="Application" factoryName="Application">
+  <configuration default="false" name="IotBench - mysql" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.oltpbenchmark.DBWorkload" />
     <module name="benchbase" />
-    <option name="PROGRAM_PARAMETERS" value="-b iotBench -c config/mysql/sample_iotBench_config.xml --create=true --load=true --execute=true" />
+    <option name="PROGRAM_PARAMETERS" value="-b IotBench -c config/mysql/sample_IotBench_config.xml --create=true --load=true --execute=true" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.oltpbenchmark.*" />

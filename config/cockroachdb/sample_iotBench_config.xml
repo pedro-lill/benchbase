@@ -4,14 +4,14 @@
     <!-- Connection details -->
     <type>COCKROACHDB</type>
     <driver>org.postgresql.Driver</driver>
-    <url>jdbc:postgresql://localhost:26257/benchbase?sslmode=disable&amp;ApplicationName=iotBench&amp;reWriteBatchedInserts=true</url>
+    <url>jdbc:postgresql://localhost:26257/benchbase?sslmode=disable&amp;ApplicationName=IotBench&amp;reWriteBatchedInserts=true</url>
     <username>root</username>
     <password></password>
     <reconnectOnConnectionFailure>true</reconnectOnConnectionFailure>
     <isolation>TRANSACTION_SERIALIZABLE</isolation>
     <batchsize>128</batchsize>
 
-    <!-- Scalefactor in iotBench is *1000 the number of rows in the USERTABLE-->
+    <!-- Scalefactor in IotBench is *1000 the number of rows in the USERTABLE-->
     <scalefactor>1</scalefactor>
 
     <!-- Optional: Override the field size for each column in USERTABLE -->
@@ -30,7 +30,7 @@
         </work>
     </works>
 
-    <!-- iotBench Procedures declaration -->
+    <!-- IotBench Procedures declaration -->
     <transactiontypes>
         <transactiontype>
             <name>ReadRecord</name>

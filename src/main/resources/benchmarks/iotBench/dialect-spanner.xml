@@ -3,7 +3,7 @@
     <dialect type="SPANNER">
         <procedure name="ReadModifyWriteRecord">
             <statement name="selectStmt">
-                SELECT * FROM usertable WHERE iotBench_key=?
+                SELECT * FROM usertable WHERE IotBench_key=?
             </statement>
         </procedure>
         <procedure name="InsertRecord">
@@ -13,12 +13,12 @@
         </procedure>
         <procedure name="UpdateRecord">
             <statement name="updateAllStmt">
-                UPDATE usertable SET iotBench_key=?, FIELD2=?, FIELD3=? WHERE iotBench_key=?
+                UPDATE usertable SET IotBench_key=?, FIELD2=?, FIELD3=? WHERE IotBench_key=?
             </statement>
         </procedure>
         <procedure name="DeleteRecord">
             <statement name="deleteStmt">
-                DELETE FROM usertable WHERE iotBench_key=?
+                DELETE FROM usertable WHERE IotBench_key=?
             </statement>
         </procedure>
     </dialect>

@@ -1,10 +1,10 @@
--- iotBench DDL for Microsoft SQL Server
+-- IotBench DDL for Microsoft SQL Server
 
 IF OBJECT_ID('USERTABLE', 'U') IS NOT NULL
     DROP TABLE USERTABLE;
 
 CREATE TABLE USERTABLE (
-    iotBench_KEY INT PRIMARY KEY,
+    IotBench_KEY INT PRIMARY KEY,
     FIELD1 BIGINT,
     FIELD2 FLOAT,
     FIELD3 FLOAT

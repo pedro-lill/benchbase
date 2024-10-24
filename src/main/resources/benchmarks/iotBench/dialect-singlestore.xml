@@ -3,17 +3,17 @@
     <dialect type="SINGLESTORE">
         <procedure name="ReadRecord">
             <statement name="readStmt">
-                SELECT * FROM USERTABLE WHERE iotBench_KEY=?
+                SELECT * FROM USERTABLE WHERE IotBench_KEY=?
             </statement>
         </procedure>
         <procedure name="ScanRecord">
             <statement name="scanStmt">
-                SELECT * FROM USERTABLE WHERE iotBench_KEY &gt; ? AND iotBench_KEY &lt; ?
+                SELECT * FROM USERTABLE WHERE IotBench_KEY &gt; ? AND IotBench_KEY &lt; ?
             </statement>
         </procedure>
         <procedure name="UpdateRecord">
             <statement name="updateAllStmt">
-                UPDATE USERTABLE SET FIELD1=?, FIELD2=?, FIELD3=? WHERE iotBench_KEY=?
+                UPDATE USERTABLE SET FIELD1=?, FIELD2=?, FIELD3=? WHERE IotBench_KEY=?
             </statement>
         </procedure>
         <procedure name="InsertRecord">
@@ -23,15 +23,15 @@
         </procedure>
         <procedure name="DeleteRecord">
             <statement name="deleteStmt">
-                DELETE FROM USERTABLE WHERE iotBench_KEY=?
+                DELETE FROM USERTABLE WHERE IotBench_KEY=?
             </statement>
         </procedure>
         <procedure name="ReadModifyWriteRecord">
             <statement name="selectStmt">
-                SELECT * FROM USERTABLE WHERE iotBench_KEY=?
+                SELECT * FROM USERTABLE WHERE IotBench_KEY=?
             </statement>
             <statement name="updateAllStmt">
-                UPDATE USERTABLE SET FIELD1=?, FIELD2=?, FIELD3=? WHERE iotBench_KEY=?
+                UPDATE USERTABLE SET FIELD1=?, FIELD2=?, FIELD3=? WHERE IotBench_KEY=?
             </statement>
         </procedure>
     </dialect>

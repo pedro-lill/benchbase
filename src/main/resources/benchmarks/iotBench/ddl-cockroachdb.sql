@@ -1,9 +1,9 @@
 DROP TABLE IF EXISTS USERTABLE;
 
 CREATE TABLE USERTABLE (
-    iotBench_key INT,
+    IotBench_key INT,
     FIELD1 BIGINT,
     FIELD2 DOUBLE,
     FIELD3 DOUBLE,
-    PRIMARY KEY (iotBench_key)
+    PRIMARY KEY (IotBench_key)
 );

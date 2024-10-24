@@ -3,7 +3,7 @@
     <dialect type="SQLSERVER">
         <procedure name="ReadModifyWriteRecord">
             <statement name="selectStmt">
-                Select * from USERTABLE where iotBench_KEY=?
+                Select * from USERTABLE where IotBench_KEY=?
             </statement>
         </procedure>
     </dialect>
