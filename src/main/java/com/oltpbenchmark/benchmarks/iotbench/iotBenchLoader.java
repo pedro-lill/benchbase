@@ -42,7 +42,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
 
     final CountDownLatch latch = new CountDownLatch(numLoaders);
 
-    // Carregando usuários
     for (int i = 0; i < numLoaders; i++) {
       final int start = i * usersPerThread;
       final int stop = Math.min(this.numUsers, (i + 1) * usersPerThread);
@@ -61,7 +60,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
           });
     }
 
-    // Carregando hubs
     for (int i = 0; i < numLoaders; i++) {
       final int start = i * hubsPerThread;
       final int stop = Math.min(this.numHubs, (i + 1) * hubsPerThread);
@@ -76,7 +74,7 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
             @Override
             public void beforeLoad() {
               try {
-                latch.await(); // Espera carregar usuários antes de carregar hubs
+                latch.await();
               } catch (InterruptedException e) {
                 throw new RuntimeException(e);
               }
@@ -84,7 +82,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
           });
     }
 
-    // Carregando salas
     for (int i = 0; i < numLoaders; i++) {
       final int start = i * roomsPerThread;
       final int stop = Math.min(this.numRooms, (i + 1) * roomsPerThread);
@@ -107,7 +104,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
           });
     }
 
-    // Carregando dispositivos
     for (int i = 0; i < numLoaders; i++) {
       final int start = i * devicesPerThread;
       final int stop = Math.min(this.numDevices, (i + 1) * devicesPerThread);
@@ -130,7 +126,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
           });
     }
 
-    // Carregando sensores
     for (int i = 0; i < numLoaders; i++) {
       final int start = i * sensorsPerThread;
       final int stop = Math.min(this.numSensors, (i + 1) * sensorsPerThread);
@@ -158,14 +153,13 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
 
   private void loadUsers(Connection conn, int start, int stop) throws SQLException {
     String sqlInsertUser =
-        "INSERT INTO UserTable (userId, name, email, password_hash, userType) VALUES (?, ?, ?, ?, ?)";
+        "INSERT INTO UserTable (name, email, password_hash, userType) VALUES (?, ?, ?, ?)";
     try (PreparedStatement stmtUser = conn.prepareStatement(sqlInsertUser)) {
       for (int i = start; i < stop; i++) {
-        stmtUser.setInt(1, i);
-        stmtUser.setString(2, "User_" + i);
-        stmtUser.setString(3, "user" + i + "@iotbench.com");
-        stmtUser.setString(4, "hash" + i);
-        stmtUser.setInt(5, (i % 3) + 1);
+        stmtUser.setString(1, "User_" + i);
+        stmtUser.setString(2, "user" + i + "@iotbench.com");
+        stmtUser.setString(3, "hash" + i);
+        stmtUser.setInt(4, (i % 3) + 1);
         stmtUser.addBatch();
 
         if (i % 1000 == 0 || i == stop - 1) {
@@ -176,7 +170,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
     }
   }
 
-  // Função para carregar hubs
   private void loadHubs(Connection conn, int start, int stop) throws SQLException {
     String sqlInsertHub = "INSERT INTO Hub (hubId, name, status) VALUES (?, ?, ?)";
     try (PreparedStatement stmtHub = conn.prepareStatement(sqlInsertHub)) {
@@ -185,13 +178,21 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
         stmtHub.setString(2, "Hub_" + i);
         stmtHub.setString(3, "active");
         stmtHub.addBatch();
+
+        if (i % 1000 == 0 || i == stop - 1) {
+          stmtHub.executeBatch();
+          LOG.info("Loaded {} hubs so far.", i + 1);
+        }
       }
       stmtHub.executeBatch();
-      LOG.info("Loaded {} hubs.", stop - start);
+      LOG.info("Loaded {} hubs from {} to {}", stop - start, start, stop);
+    } catch (SQLException e) {
+      LOG.error("Error loading hubs between {} and {}. Rolling back!", start, stop, e);
+      conn.rollback();
+      throw e;
     }
   }
 
-  // Função para carregar salas
   private void loadRooms(Connection conn, int start, int stop) throws SQLException {
     String sqlInsertRoom = "INSERT INTO Room (roomId, name, room_type) VALUES (?, ?, ?)";
     try (PreparedStatement stmtRoom = conn.prepareStatement(sqlInsertRoom)) {
@@ -206,7 +207,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
     }
   }
 
-  // Função para carregar dispositivos
   private void loadDevices(Connection conn, int start, int stop) throws SQLException {
     String sqlInsertDevice =
         "INSERT INTO Device (deviceId, name, status, device_type, room_id, hub_id) VALUES (?, ?, ?, ?, ?, ?)";
@@ -225,7 +225,6 @@ public class IotBenchLoader extends Loader<IotBenchBenchmark> {
     }
   }
 
-  // Função para carregar sensores
   private void loadSensors(Connection conn, int start, int stop) throws SQLException {
     String sqlInsertSensor =
         "INSERT INTO Sensor (sensorId, name, sensor_type, device_id) VALUES (?, ?, ?, ?)";

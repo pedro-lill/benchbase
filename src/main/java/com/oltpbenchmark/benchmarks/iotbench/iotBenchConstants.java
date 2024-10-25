@@ -35,10 +35,10 @@ public abstract class IotBenchConstants {
   public static final int MAX_SCAN = 1000;
 
   // Limits for data retrieval in different tables
-  public static int LIMIT_USERS = 100;
-  public static int LIMIT_HUBS = 10;
-  public static int LIMIT_DEVICES = 20;
-  public static int LIMIT_SENSORS = 50;
+  public static int LIMIT_USERS = 1000;
+  public static int LIMIT_HUBS = 1000;
+  public static int LIMIT_DEVICES = 2000;
+  public static int LIMIT_SENSORS = 5000;
 
   // Other relevant constants (if needed)
   public static final int MAX_NAME_LENGTH = 255;
