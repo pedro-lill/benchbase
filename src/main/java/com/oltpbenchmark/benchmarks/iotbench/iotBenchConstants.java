@@ -3,15 +3,15 @@ package com.oltpbenchmark.benchmarks.iotbench;
 public abstract class IotBenchConstants {
 
   // Table names
-  public static final String TABLENAME_USERTABLE = "UserTable";
-  public static final String TABLENAME_HUB = "Hub";
-  public static final String TABLENAME_ROOM = "Room";
-  public static final String TABLENAME_DEVICE = "Device";
-  public static final String TABLENAME_SENSOR = "Sensor";
-  public static final String TABLENAME_SENSOR_LOG = "SensorLog";
-  public static final String TABLENAME_AUTOMATION_PROFILE = "AutomationProfile";
-  public static final String TABLENAME_ACTION_LOGS = "ActionLogs";
-  public static final String TABLE_NAME = "aa";
+  public static final String TABLENAME_USERTABLE = "USERTABLE";
+  public static final String TABLENAME_HUB = "HUB";
+  public static final String TABLENAME_ROOM = "ROOM";
+  public static final String TABLENAME_DEVICE = "DEVICE";
+  public static final String TABLENAME_SENSOR = "SENSOR";
+  public static final String TABLENAME_SENSOR_LOG = "SENSORLOG";
+  public static final String TABLENAME_AUTOMATION_PROFILE = "AUTOMATIONPROFILE";
+  public static final String TABLENAME_ACTION_LOGS = "ACTIONLOGS";
+  public static final String TABLE_NAME = "AA";
 
   public static final int NUM_USERS = 1000;
   public static final int NUM_HUBS = 100;

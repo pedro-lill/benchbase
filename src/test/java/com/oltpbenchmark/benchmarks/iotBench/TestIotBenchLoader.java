@@ -22,6 +22,17 @@ import java.util.List;
 
 public class TestIotBenchLoader extends AbstractTestLoader<IotBenchBenchmark> {
 
+  private static final String[] IGNORE = {
+    IotBenchConstants.TABLENAME_USERTABLE,
+    IotBenchConstants.TABLENAME_HUB,
+    IotBenchConstants.TABLENAME_HUB,
+    IotBenchConstants.TABLENAME_DEVICE,
+    IotBenchConstants.TABLENAME_SENSOR,
+    IotBenchConstants.TABLENAME_SENSOR_LOG,
+    IotBenchConstants.TABLENAME_AUTOMATION_PROFILE,
+    IotBenchConstants.TABLENAME_ACTION_LOGS
+  };
+
   @Override
   public List<Class<? extends Procedure>> procedures() {
     return TestIotBenchBenchmark.PROCEDURE_CLASSES;
@@ -30,5 +41,10 @@ public class TestIotBenchLoader extends AbstractTestLoader<IotBenchBenchmark> {
   @Override
   public Class<IotBenchBenchmark> benchmarkClass() {
     return IotBenchBenchmark.class;
+  }
+
+  @Override
+  public List<String> ignorableTables() {
+    return List.of(IGNORE);
   }
 }

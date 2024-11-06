@@ -14,22 +14,6 @@
  * limitations under the License.
  *
  */
-/*
- * Copyright 2020 by OLTPBenchmark Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
 
 package com.oltpbenchmark.benchmarks.iotbench;
 
@@ -53,11 +37,16 @@ public final class IotBenchBenchmark extends BenchmarkModule {
 
   private static final Logger LOG = LoggerFactory.getLogger(IotBenchBenchmark.class);
 
-  /** The length in characters of each field */
   protected final int fieldSize;
 
-  /** The constant used in the zipfian distribution (to modify the skew) */
   protected final double skewFactor;
+
+  int numUsers;
+  int numSensors;
+  int numSensorLogs;
+  int numActionLogs;
+  int numRooms;
+  int numHubs;
 
   public IotBenchBenchmark(WorkloadConfiguration workConf) {
     super(workConf);
@@ -86,25 +75,25 @@ public final class IotBenchBenchmark extends BenchmarkModule {
   protected List<Worker<? extends BenchmarkModule>> makeWorkersImpl() {
     List<Worker<? extends BenchmarkModule>> workers = new ArrayList<>();
     try {
-      // LOADING FROM THE DATABASE IMPORTANT INFORMATION
-      // LIST OF USERS
-      Table t = this.getCatalog().getTable("USERTABLE");
-      String userCount = SQLUtil.getMaxColSQL(this.workConf.getDatabaseType(), t, "IotBench_key");
+      Table t = this.getCatalog().getTable(IotBenchConstants.TABLENAME_USERTABLE);
+      String userCount = SQLUtil.getMaxColSQL(this.workConf.getDatabaseType(), t, "userId");
 
       try (Connection metaConn = this.makeConnection();
           Statement stmt = metaConn.createStatement();
           ResultSet res = stmt.executeQuery(userCount)) {
-        int init_record_count = 0;
-        while (res.next()) {
-          init_record_count = res.getInt(1);
+        int initRecordCount = 0;
+        if (res.next()) {
+          initRecordCount = res.getInt(1);
         }
 
         for (int i = 0; i < workConf.getTerminals(); ++i) {
-          workers.add(new IotBenchWorker(this, i, init_record_count + 1));
+          workers.add(new IotBenchWorker(this, i, initRecordCount + 1));
         }
+
+        LOG.info("Workers inicializados: " + workConf.getTerminals());
       }
     } catch (SQLException e) {
-      LOG.error(e.getMessage(), e);
+      LOG.error("Erro ao inicializar workers: " + e.getMessage(), e);
     }
     return workers;
   }
