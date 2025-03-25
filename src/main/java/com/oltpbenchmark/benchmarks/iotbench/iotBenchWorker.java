@@ -1,5 +1,8 @@
 package com.oltpbenchmark.benchmarks.iotbench;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
@@ -11,10 +14,8 @@ import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertSensorRecord;
 import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertUserRecord;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.RandomGenerator;
-import java.sql.Connection;
-import java.sql.SQLException;
 
-class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
+public final class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
 
   private final RandomGenerator randScan;
 
