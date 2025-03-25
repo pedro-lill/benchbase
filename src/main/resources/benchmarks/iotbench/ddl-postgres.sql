@@ -1,93 +1,69 @@
--- Remove as tabelas se já existirem
-DROP TABLE IF EXISTS actionlogs CASCADE;
-DROP TABLE IF EXISTS automationprofile CASCADE;
-DROP TABLE IF EXISTS sensorlog CASCADE;
-DROP TABLE IF EXISTS sensor CASCADE;
-DROP TABLE IF EXISTS device CASCADE;
-DROP TABLE IF EXISTS room CASCADE;
-DROP TABLE IF EXISTS hub CASCADE;
-DROP TABLE IF EXISTS usertable CASCADE;
+DROP TABLE IF EXISTS ACTIONLOGS;
+DROP TABLE IF EXISTS AUTOMATIONPROFILE;
+DROP TABLE IF EXISTS SENSORLOG;
+DROP TABLE IF EXISTS SENSOR;
+DROP TABLE IF EXISTS DEVICE;
+DROP TABLE IF EXISTS ROOM;
+DROP TABLE IF EXISTS HUB;
+DROP TABLE IF EXISTS USERTABLE;
 
--- Tabela usertable
-CREATE TABLE usertable (
-    user_id INT PRIMARY KEY,
-    name_user VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    user_type INT NOT NULL
+CREATE TABLE USERTABLE (
+    userId INT PRIMARY KEY,
+    nameIot VARCHAR(255),
+    email VARCHAR(255),
+    password_hash VARCHAR(255),
+    usertype int
 );
 
--- Tabela hub
-CREATE TABLE hub (
-    hub_id INT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL
+CREATE TABLE HUB (
+    hubId INT PRIMARY KEY,
+    name VARCHAR(255),
+    status VARCHAR(50)
 );
 
--- Tabela room
-CREATE TABLE room (
-    room_id INT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    room_type INT NOT NULL
+CREATE TABLE ROOM (
+    roomId INT PRIMARY KEY,
+    name VARCHAR(255),
+    room_type int
 );
 
--- Tabela device
-CREATE TABLE device (
-    device_id INT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    device_type INT NOT NULL,
+CREATE TABLE DEVICE (
+    deviceId INT PRIMARY KEY,
+    name VARCHAR(255),
+    status VARCHAR(50),
+    device_type INT,
     room_id INT,
-    hub_id INT,
-    FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE CASCADE,
-    FOREIGN KEY (hub_id) REFERENCES hub (hub_id) ON DELETE CASCADE
+    hub_id INT
 );
 
--- Tabela sensor
-CREATE TABLE sensor (
-    sensor_id INT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    type INT NOT NULL,
-    value DECIMAL(10, 2) NOT NULL,
-    device_id INT,
-    FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE
+CREATE TABLE SENSOR (
+    sensorId INT PRIMARY KEY,
+    name VARCHAR(255),
+    type int,
+    value DECIMAL(10, 2),
+    deviceId INT
 );
 
--- Tabela sensorlog
-CREATE TABLE sensorlog (
-    id SERIAL PRIMARY KEY, -- Usando SERIAL para autoincremento
-    sensor_id INT NOT NULL,
-    value DECIMAL(10, 2) NOT NULL,
-    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sensor_id) REFERENCES sensor (sensor_id) ON DELETE CASCADE
+CREATE TABLE SENSORLOG (
+    id INT PRIMARY KEY,
+    sensor_id INT,
+    value DECIMAL(10, 2),
+    date timestamp
 );
 
--- Tabela automationprofile
-CREATE TABLE automationprofile (
+CREATE TABLE AUTOMATIONPROFILE (
     profile_id INT PRIMARY KEY,
-    device_id INT NOT NULL,
-    user_id INT NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    command VARCHAR(255) NOT NULL,
-    FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES usertable (user_id) ON DELETE CASCADE
+    device_id INT,
+    user_id int,
+    status VARCHAR(50),
+    command VARCHAR(255)
 );
 
--- Tabela actionlogs
-CREATE TABLE actionlogs (
-    log_id SERIAL PRIMARY KEY, -- Usando SERIAL para autoincremento
-    user_id INT NOT NULL,
-    device_id INT NOT NULL,
-    action VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES usertable (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE
+CREATE TABLE ACTIONLOGS (
+    log_id INT PRIMARY KEY,
+    user_id INT,
+    device_id INT,
+    action VARCHAR(255),
+    status VARCHAR(50),
+    date timestamp
 );
-
--- Índices para melhorar o desempenho das consultas
-CREATE INDEX idx_sensorlog_sensor_id ON sensorlog (sensor_id);
-CREATE INDEX idx_actionlogs_user_id ON actionlogs (user_id);
-CREATE INDEX idx_actionlogs_device_id ON actionlogs (device_id);
-CREATE INDEX idx_automationprofile_device_id ON automationprofile (device_id);
-CREATE INDEX idx_automationprofile_user_id ON automationprofile (user_id);

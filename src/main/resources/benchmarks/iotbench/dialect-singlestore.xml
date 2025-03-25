@@ -1,22 +1,38 @@
 <?xml version="1.0"?>
 <dialects>
     <dialect type="SINGLESTORE">
-        <procedure name="NewOrder">
-            <statement name="stmtGetDistSQL">
-                SELECT D_NEXT_O_ID, D_TAX
-                FROM DISTRICT
-                WHERE D_W_ID = ? AND D_ID = ?
+        <procedure name="ReadRecord">
+            <statement name="readStmt">
+                SELECT * FROM USERTABLE WHERE IotBench_KEY=?
             </statement>
-            <statement name="stmtGetStockSQL">
-                SELECT
-                    S_QUANTITY, S_DATA, S_DIST_01, S_DIST_02, S_DIST_03, S_DIST_04, S_DIST_05,
-                    S_DIST_06, S_DIST_07, S_DIST_08, S_DIST_09, S_DIST_10
-                FROM STOCK
-                WHERE
-                    S_I_ID = ?
-                    AND S_W_ID = ?
+        </procedure>
+        <procedure name="ScanRecord">
+            <statement name="scanStmt">
+                SELECT * FROM USERTABLE WHERE IotBench_KEY &gt; ? AND IotBench_KEY &lt; ?
+            </statement>
+        </procedure>
+        <procedure name="UpdateRecord">
+            <statement name="updateAllStmt">
+                UPDATE USERTABLE SET FIELD1=?, FIELD2=?, FIELD3=? WHERE IotBench_KEY=?
+            </statement>
+        </procedure>
+        <procedure name="InsertRecord">
+            <statement name="insertStmt">
+                INSERT INTO USERTABLE (FIELD1, FIELD2, FIELD3) VALUES (?,?,?)
+            </statement>
+        </procedure>
+        <procedure name="DeleteRecord">
+            <statement name="deleteStmt">
+                DELETE FROM USERTABLE WHERE IotBench_KEY=?
+            </statement>
+        </procedure>
+        <procedure name="ReadModifyWriteRecord">
+            <statement name="selectStmt">
+                SELECT * FROM USERTABLE WHERE IotBench_KEY=?
+            </statement>
+            <statement name="updateAllStmt">
+                UPDATE USERTABLE SET FIELD1=?, FIELD2=?, FIELD3=? WHERE IotBench_KEY=?
             </statement>
         </procedure>
     </dialect>
 </dialects>
-
