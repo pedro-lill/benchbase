@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<dialects>
+    <dialect type="SPANNER">
+        <procedure name="ReadModifyWriteRecord">
+            <statement name="selectStmt">
+                SELECT * FROM usertable WHERE IotBench_key=?
+            </statement>
+        </procedure>
+        <procedure name="InsertRecord">
+            <statement name="insertStmt">
+                INSERT INTO usertable (FIELD1, FIELD2, FIELD3) VALUES (?,?,?)
+            </statement>
+        </procedure>
+        <procedure name="UpdateRecord">
+            <statement name="updateAllStmt">
+                UPDATE usertable SET IotBench_key=?, FIELD2=?, FIELD3=? WHERE IotBench_key=?
+            </statement>
+        </procedure>
+        <procedure name="DeleteRecord">
+            <statement name="deleteStmt">
+                DELETE FROM usertable WHERE IotBench_key=?
+            </statement>
+        </procedure>
+    </dialect>
+</dialects>
