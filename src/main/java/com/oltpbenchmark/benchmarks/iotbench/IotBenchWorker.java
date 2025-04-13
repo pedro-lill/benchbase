@@ -63,7 +63,8 @@ public final class IotBenchWorker extends Worker<IotBenchBenchmark> {
   protected TransactionStatus executeWork(Connection conn, TransactionType nextTransaction)
       throws UserAbortException, SQLException {
     try {
-      IotBenchProcedure proc = (IotBenchProcedure) this.getProcedure(nextTransaction.getProcedureClass());
+      IotBenchProcedure proc =
+          (IotBenchProcedure) this.getProcedure(nextTransaction.getProcedureClass());
       proc.run(
           conn,
           gen,

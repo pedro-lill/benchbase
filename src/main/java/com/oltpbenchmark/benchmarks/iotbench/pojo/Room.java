@@ -7,26 +7,26 @@ public class Room {
 
   // Getters e Setters
   public int getRoomId() {
-      return roomId;
+    return roomId;
   }
 
   public void setRoomId(int roomId) {
-      this.roomId = roomId;
+    this.roomId = roomId;
   }
 
   public String getName() {
-      return name;
+    return name;
   }
 
   public void setName(String name) {
-      this.name = name;
+    this.name = name;
   }
 
   public int getRoomType() {
-      return roomType;
+    return roomType;
   }
 
   public void setRoomType(int roomType) {
-      this.roomType = roomType;
+    this.roomType = roomType;
   }
 }

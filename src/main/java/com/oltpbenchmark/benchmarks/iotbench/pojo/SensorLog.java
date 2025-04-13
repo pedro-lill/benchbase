@@ -1,4 +1,5 @@
 package com.oltpbenchmark.benchmarks.iotbench.pojo;
+
 import java.sql.Timestamp;
 
 public class SensorLog {
@@ -9,34 +10,34 @@ public class SensorLog {
 
   // Getters e Setters
   public int getId() {
-      return id;
+    return id;
   }
 
   public void setId(int id) {
-      this.id = id;
+    this.id = id;
   }
 
   public int getSensorId() {
-      return sensorId;
+    return sensorId;
   }
 
   public void setSensorId(int sensorId) {
-      this.sensorId = sensorId;
+    this.sensorId = sensorId;
   }
 
   public double getValue() {
-      return value;
+    return value;
   }
 
   public void setValue(double value) {
-      this.value = value;
+    this.value = value;
   }
 
   public Timestamp getDate() {
-      return date;
+    return date;
   }
 
   public void setDate(Timestamp date) {
-      this.date = date;
+    this.date = date;
   }
 }

@@ -15,25 +15,25 @@
  *
  */
 
- package com.oltpbenchmark.benchmarks.benchio;
+package com.oltpbenchmark.benchmarks.benchio;
 
- public abstract class BenchIOConstants {
-     // Tabelas principais do sistema IoT
-     public static final String TABLENAME_USER = "usertable";
-     public static final String TABLENAME_HUB = "hub";
-     public static final String TABLENAME_ROOM = "room";
-     public static final String TABLENAME_DEVICE = "device";
-     public static final String TABLENAME_SENSOR = "sensor";
+public abstract class BenchIOConstants {
+  // Tabelas principais do sistema IoT
+  public static final String TABLENAME_USER = "user";
+  public static final String TABLENAME_HUB = "hub";
+  public static final String TABLENAME_ROOM = "room";
+  public static final String TABLENAME_DEVICE = "device";
+  public static final String TABLENAME_SENSOR = "sensor";
 
-     // Tabelas de registros e logs
-     public static final String TABLENAME_SENSORLOG = "sensorlog";
-     public static final String TABLENAME_ACTIONLOGS = "actionlogs";
-     public static final String TABLENAME_AUTOMATION = "automationprofile";
+  // Tabelas de registros e logs
+  public static final String TABLENAME_SENSORLOG = "sensorlog";
+  public static final String TABLENAME_ACTIONLOGS = "actionlogs";
+  public static final String TABLENAME_AUTOMATION = "automationprofile";
 
-     // Nomes de colunas comuns (opcional - pode ser útil para consultas)
-     public static final String COLUMN_ID = "id";
-     public static final String COLUMN_NAME = "name";
-     public static final String COLUMN_STATUS = "status";
-     public static final String COLUMN_TIMESTAMP = "timestamp";
-     public static final String COLUMN_VALUE = "value";
- }
+  // Nomes de colunas comuns (opcional - pode ser útil para consultas)
+  public static final String COLUMN_ID = "id";
+  public static final String COLUMN_NAME = "name";
+  public static final String COLUMN_STATUS = "status";
+  public static final String COLUMN_TIMESTAMP = "timestamp";
+  public static final String COLUMN_VALUE = "value";
+}

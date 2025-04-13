@@ -162,7 +162,8 @@
 //       IotBenchWorker worker)
 //       throws SQLException {
 
-//     int districtID = IotBenchUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
+//     int districtID = IotBenchUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID,
+// gen);
 
 //     float paymentAmount = (float) (IotBenchUtil.randomNumber(100, 500000, gen) / 100.0);
 
@@ -311,7 +312,8 @@
 //     }
 //   }
 
-//   private void updateWarehouse(Connection conn, int w_id, float paymentAmount) throws SQLException {
+//   private void updateWarehouse(Connection conn, int w_id, float paymentAmount) throws
+// SQLException {
 //     try (PreparedStatement payUpdateWhse = this.getPreparedStatement(conn, payUpdateWhseSQL)) {
 //       payUpdateWhse.setBigDecimal(1, BigDecimal.valueOf(paymentAmount));
 //       payUpdateWhse.setInt(2, w_id);
@@ -427,7 +429,8 @@
 //       Customer c)
 //       throws SQLException {
 
-//     try (PreparedStatement payGetCustCdata = this.getPreparedStatement(conn, payGetCustCdataSQL)) {
+//     try (PreparedStatement payGetCustCdata = this.getPreparedStatement(conn, payGetCustCdataSQL))
+// {
 //       String c_data;
 //       payGetCustCdata.setInt(1, customerWarehouseID);
 //       payGetCustCdata.setInt(2, customerDistrictID);
@@ -607,7 +610,8 @@
 
 //     if (customers.size() == 0) {
 //       throw new RuntimeException(
-//           "C_LAST=" + customerLastName + " C_D_ID=" + c_d_id + " C_W_ID=" + c_w_id + " not found!");
+//           "C_LAST=" + customerLastName + " C_D_ID=" + c_d_id + " C_W_ID=" + c_w_id + " not
+// found!");
 //     }
 
 //     // TPC-C 2.5.2.2: Position n / 2 rounded up to the next integer, but

@@ -25,9 +25,13 @@ import java.util.Random;
 
 public abstract class BenchIOProcedure extends Procedure {
 
-    public abstract void run(Connection conn, Random gen,
-                           int terminalHubID, int numHubs,
-                           int terminalRoomLowerID, int terminalRoomUpperID,
-                           BenchIOWorker worker) throws SQLException;
+  public abstract void run(
+      Connection conn,
+      Random gen,
+      int terminalHubID,
+      int numHubs,
+      int terminalRoomLowerID,
+      int terminalRoomUpperID,
+      BenchIOWorker worker)
+      throws SQLException;
 }
-

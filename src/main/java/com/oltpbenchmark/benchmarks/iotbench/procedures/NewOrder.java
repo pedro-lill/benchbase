@@ -132,7 +132,8 @@
 //       new SQLStmt(
 //           """
 //         INSERT INTO %s
-//          (OL_O_ID, OL_D_ID, OL_W_ID, OL_NUMBER, OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT, OL_DIST_INFO)
+//          (OL_O_ID, OL_D_ID, OL_W_ID, OL_NUMBER, OL_I_ID, OL_SUPPLY_W_ID, OL_QUANTITY, OL_AMOUNT,
+// OL_DIST_INFO)
 //          VALUES (?,?,?,?,?,?,?,?,?)
 //     """
 //               .formatted(IotBenchConstants.TABLENAME_ORDERLINE));
@@ -147,7 +148,8 @@
 //       IotBenchWorker w)
 //       throws SQLException {
 
-//     int districtID = IotBenchUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID, gen);
+//     int districtID = IotBenchUtil.randomNumber(terminalDistrictLowerID, terminalDistrictUpperID,
+// gen);
 //     int customerID = IotBenchUtil.getCustomerID(gen);
 
 //     int numItems = IotBenchUtil.randomNumber(5, 15, gen);
@@ -327,7 +329,8 @@
 //     }
 //   }
 
-//   private void insertNewOrder(Connection conn, int w_id, int d_id, int o_id) throws SQLException {
+//   private void insertNewOrder(Connection conn, int w_id, int d_id, int o_id) throws SQLException
+// {
 //     try (PreparedStatement stmtInsertNewOrder =
 //         this.getPreparedStatement(conn, stmtInsertNewOrderSQL); ) {
 //       stmtInsertNewOrder.setInt(1, o_id);
@@ -369,7 +372,8 @@
 //       int result = stmtUpdateDist.executeUpdate();
 //       if (result == 0) {
 //         throw new RuntimeException(
-//             "Error!! Cannot update next_order_id on district for D_ID=" + d_id + " D_W_ID=" + w_id);
+//             "Error!! Cannot update next_order_id on district for D_ID=" + d_id + " D_W_ID=" +
+// w_id);
 //       }
 //     }
 //   }

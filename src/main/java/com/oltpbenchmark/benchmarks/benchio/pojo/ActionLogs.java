@@ -29,50 +29,50 @@ public class ActionLogs {
 
   // Getters e Setters
   public int getLogId() {
-      return logId;
+    return logId;
   }
 
   public void setLogId(int logId) {
-      this.logId = logId;
+    this.logId = logId;
   }
 
   public int getUserId() {
-      return userId;
+    return userId;
   }
 
   public void setUserId(int userId) {
-      this.userId = userId;
+    this.userId = userId;
   }
 
   public int getDeviceId() {
-      return deviceId;
+    return deviceId;
   }
 
   public void setDeviceId(int deviceId) {
-      this.deviceId = deviceId;
+    this.deviceId = deviceId;
   }
 
   public String getAction() {
-      return action;
+    return action;
   }
 
   public void setAction(String action) {
-      this.action = action;
+    this.action = action;
   }
 
   public String getStatus() {
-      return status;
+    return status;
   }
 
   public void setStatus(String status) {
-      this.status = status;
+    this.status = status;
   }
 
   public Timestamp getDate() {
-      return date;
+    return date;
   }
 
   public void setDate(Timestamp date) {
-      this.date = date;
+    this.date = date;
   }
 }

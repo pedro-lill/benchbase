@@ -14,29 +14,32 @@
  *  limitations under the License.
  */
 
-package com.oltpbenchmark.benchmarks.tpcc;
+package com.oltpbenchmark.benchmarks.benchio;
 
 import com.oltpbenchmark.api.AbstractTestBenchmarkModule;
 import com.oltpbenchmark.api.Procedure;
-import com.oltpbenchmark.benchmarks.tpcc.procedures.Delivery;
-import com.oltpbenchmark.benchmarks.tpcc.procedures.NewOrder;
-import com.oltpbenchmark.benchmarks.tpcc.procedures.OrderStatus;
-import com.oltpbenchmark.benchmarks.tpcc.procedures.Payment;
-import com.oltpbenchmark.benchmarks.tpcc.procedures.StockLevel;
+import com.oltpbenchmark.benchmarks.benchio.procedures.AutomationTriggerProcedure;
+import com.oltpbenchmark.benchmarks.benchio.procedures.DeviceControlProcedure;
+import com.oltpbenchmark.benchmarks.benchio.procedures.SensorReadingProcedure;
+import com.oltpbenchmark.benchmarks.benchio.procedures.UserSimulationProcedure;
 import java.util.List;
 
-public class TestTPCCBenchmark extends AbstractTestBenchmarkModule<TPCCBenchmark> {
+public class TestBenchIOBenchmark extends AbstractTestBenchmarkModule<BenchIOBenchmark> {
 
   public static final List<Class<? extends Procedure>> PROCEDURE_CLASSES =
-      List.of(Delivery.class, NewOrder.class, OrderStatus.class, Payment.class, StockLevel.class);
+      List.of(
+          AutomationTriggerProcedure.class,
+          DeviceControlProcedure.class,
+          SensorReadingProcedure.class,
+          UserSimulationProcedure.class);
 
   @Override
   public List<Class<? extends Procedure>> procedures() {
-    return TestTPCCBenchmark.PROCEDURE_CLASSES;
+    return TestBenchIOBenchmark.PROCEDURE_CLASSES;
   }
 
   @Override
-  public Class<TPCCBenchmark> benchmarkClass() {
-    return TPCCBenchmark.class;
+  public Class<BenchIOBenchmark> benchmarkClass() {
+    return BenchIOBenchmark.class;
   }
 }

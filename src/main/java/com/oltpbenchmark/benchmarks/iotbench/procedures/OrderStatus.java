@@ -265,7 +265,8 @@
 //         if (!rs.next()) {
 //           String msg =
 //               String.format(
-//                   "Failed to get CUSTOMER [C_W_ID=%d, C_D_ID=%d, C_ID=%d]", c_w_id, c_d_id, c_id);
+//                   "Failed to get CUSTOMER [C_W_ID=%d, C_D_ID=%d, C_ID=%d]", c_w_id, c_d_id,
+// c_id);
 
 //           throw new RuntimeException(msg);
 //         }
@@ -303,7 +304,8 @@
 //     if (customers.size() == 0) {
 //       String msg =
 //           String.format(
-//               "Failed to get CUSTOMER [C_W_ID=%d, C_D_ID=%d, C_LAST=%s]", c_w_id, c_d_id, c_last);
+//               "Failed to get CUSTOMER [C_W_ID=%d, C_D_ID=%d, C_LAST=%s]", c_w_id, c_d_id,
+// c_last);
 
 //       throw new RuntimeException(msg);
 //     }

@@ -10,50 +10,50 @@ public class Device {
 
   // Getters e Setters
   public int getDeviceId() {
-      return deviceId;
+    return deviceId;
   }
 
   public void setDeviceId(int deviceId) {
-      this.deviceId = deviceId;
+    this.deviceId = deviceId;
   }
 
   public String getName() {
-      return name;
+    return name;
   }
 
   public void setName(String name) {
-      this.name = name;
+    this.name = name;
   }
 
   public String getStatus() {
-      return status;
+    return status;
   }
 
   public void setStatus(String status) {
-      this.status = status;
+    this.status = status;
   }
 
   public int getDeviceType() {
-      return deviceType;
+    return deviceType;
   }
 
   public void setDeviceType(int deviceType) {
-      this.deviceType = deviceType;
+    this.deviceType = deviceType;
   }
 
   public int getRoomId() {
-      return roomId;
+    return roomId;
   }
 
   public void setRoomId(int roomId) {
-      this.roomId = roomId;
+    this.roomId = roomId;
   }
 
   public int getHubId() {
-      return hubId;
+    return hubId;
   }
 
   public void setHubId(int hubId) {
-      this.hubId = hubId;
+    this.hubId = hubId;
   }
 }

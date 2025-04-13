@@ -26,42 +26,42 @@ public class AutomationProfile {
 
   // Getters e Setters
   public int getProfileId() {
-      return profileId;
+    return profileId;
   }
 
   public void setProfileId(int profileId) {
-      this.profileId = profileId;
+    this.profileId = profileId;
   }
 
   public int getDeviceId() {
-      return deviceId;
+    return deviceId;
   }
 
   public void setDeviceId(int deviceId) {
-      this.deviceId = deviceId;
+    this.deviceId = deviceId;
   }
 
   public int getUserId() {
-      return userId;
+    return userId;
   }
 
   public void setUserId(int userId) {
-      this.userId = userId;
+    this.userId = userId;
   }
 
   public String getStatus() {
-      return status;
+    return status;
   }
 
   public void setStatus(String status) {
-      this.status = status;
+    this.status = status;
   }
 
   public String getCommand() {
-      return command;
+    return command;
   }
 
   public void setCommand(String command) {
-      this.command = command;
+    this.command = command;
   }
 }

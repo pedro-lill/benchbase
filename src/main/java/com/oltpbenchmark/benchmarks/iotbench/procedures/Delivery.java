@@ -175,7 +175,8 @@
 
 //   private Integer getOrderId(Connection conn, int w_id, int d_id) throws SQLException {
 
-//     try (PreparedStatement delivGetOrderId = this.getPreparedStatement(conn, delivGetOrderIdSQL)) {
+//     try (PreparedStatement delivGetOrderId = this.getPreparedStatement(conn, delivGetOrderIdSQL))
+// {
 //       delivGetOrderId.setInt(1, d_id);
 //       delivGetOrderId.setInt(2, w_id);
 
@@ -194,7 +195,8 @@
 //     }
 //   }
 
-//   private void deleteOrder(Connection conn, int w_id, int d_id, int no_o_id) throws SQLException {
+//   private void deleteOrder(Connection conn, int w_id, int d_id, int no_o_id) throws SQLException
+// {
 //     try (PreparedStatement delivDeleteNewOrder =
 //         this.getPreparedStatement(conn, delivDeleteNewOrderSQL)) {
 //       delivDeleteNewOrder.setInt(1, no_o_id);
@@ -211,14 +213,16 @@
 //         // Careful auditing would be required.
 //         String msg =
 //             String.format(
-//                 "NewOrder delete failed. Not running with SERIALIZABLE isolation? [w_id=%d, d_id=%d, no_o_id=%d]",
+//                 "NewOrder delete failed. Not running with SERIALIZABLE isolation? [w_id=%d,
+// d_id=%d, no_o_id=%d]",
 //                 w_id, d_id, no_o_id);
 //         throw new UserAbortException(msg);
 //       }
 //     }
 //   }
 
-//   private int getCustomerId(Connection conn, int w_id, int d_id, int no_o_id) throws SQLException {
+//   private int getCustomerId(Connection conn, int w_id, int d_id, int no_o_id) throws SQLException
+// {
 
 //     try (PreparedStatement delivGetCustId = this.getPreparedStatement(conn, delivGetCustIdSQL)) {
 //       delivGetCustId.setInt(1, no_o_id);
@@ -240,7 +244,8 @@
 //     }
 //   }
 
-//   private void updateCarrierId(Connection conn, int w_id, int o_carrier_id, int d_id, int no_o_id)
+//   private void updateCarrierId(Connection conn, int w_id, int o_carrier_id, int d_id, int
+// no_o_id)
 //       throws SQLException {
 //     try (PreparedStatement delivUpdateCarrierId =
 //         this.getPreparedStatement(conn, delivUpdateCarrierIdSQL)) {
@@ -254,7 +259,8 @@
 //       if (result != 1) {
 //         String msg =
 //             String.format(
-//                 "Failed to update ORDER record [W_ID=%d, D_ID=%d, O_ID=%d]", w_id, d_id, no_o_id);
+//                 "Failed to update ORDER record [W_ID=%d, D_ID=%d, O_ID=%d]", w_id, d_id,
+// no_o_id);
 //         throw new RuntimeException(msg);
 //       }
 //     }
@@ -320,7 +326,8 @@
 //       if (result == 0) {
 //         String msg =
 //             String.format(
-//                 "Failed to update CUSTOMER record [W_ID=%d, D_ID=%d, C_ID=%d]", w_id, d_id, c_id);
+//                 "Failed to update CUSTOMER record [W_ID=%d, D_ID=%d, C_ID=%d]", w_id, d_id,
+// c_id);
 //         throw new RuntimeException(msg);
 //       }
 //     }
