@@ -1,113 +1,102 @@
+/*
+ * Copyright 2020 by OLTPBenchmark Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.oltpbenchmark.benchmarks.iotbench;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
-import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.GetActiveSensorsPerRoom;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.GetSensorsAndDevicesFromRoom;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertActionLogRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertSensorLogRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertSensorRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertUserRecord;
+import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.IotBenchProcedure;
 import com.oltpbenchmark.types.TransactionStatus;
-import com.oltpbenchmark.util.RandomGenerator;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public final class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
+public final class IotBenchWorker extends Worker<IotBenchBenchmark> {
 
-  private final RandomGenerator randScan;
+  private static final Logger LOG = LoggerFactory.getLogger(IotBenchWorker.class);
 
-  // Procedimentos
-  private final GetSensorsAndDevicesFromRoom procGetSensorsAndDevicesFromRoom;
-  private final InsertSensorLogRecord procInsertSensorLogRecord;
-  private final InsertSensorRecord procInsertSensorRecord;
-  private final InsertActionLogRecord procInsertActionLogRecord;
-  private final InsertUserRecord procInsertUserRecord;
-  private final GetActiveSensorsPerRoom procGetActiveSensorsPerRoom; // Novo procedimento
+  private final int terminalWarehouseID;
 
-  public IotBenchWorker(IotBenchBenchmark benchmarkModule, int id, int init_record_count) {
-    super(benchmarkModule, init_record_count);
+  /** Forms a range [lower, upper] (inclusive). */
+  private final int terminalDistrictLowerID;
 
-    this.randScan = new RandomGenerator(init_record_count);
+  private final int terminalDistrictUpperID;
+  private final Random gen = new Random();
 
-    this.procGetSensorsAndDevicesFromRoom = this.getProcedure(GetSensorsAndDevicesFromRoom.class);
-    this.procInsertSensorLogRecord = this.getProcedure(InsertSensorLogRecord.class);
-    this.procInsertSensorRecord = this.getProcedure(InsertSensorRecord.class);
-    this.procInsertUserRecord = this.getProcedure(InsertUserRecord.class);
-    this.procInsertActionLogRecord = this.getProcedure(InsertActionLogRecord.class);
-    this.procGetActiveSensorsPerRoom = this.getProcedure(GetActiveSensorsPerRoom.class);
+  private final int numWarehouses;
+
+  public IotBenchWorker(
+      IotBenchBenchmark benchmarkModule,
+      int id,
+      int terminalWarehouseID,
+      int terminalDistrictLowerID,
+      int terminalDistrictUpperID,
+      int numWarehouses) {
+    super(benchmarkModule, id);
+
+    this.terminalWarehouseID = terminalWarehouseID;
+    this.terminalDistrictLowerID = terminalDistrictLowerID;
+    this.terminalDistrictUpperID = terminalDistrictUpperID;
+
+    this.numWarehouses = numWarehouses;
+  }
+
+  /** Executes a single IotBench transaction of type transactionType. */
+  @Override
+  protected TransactionStatus executeWork(Connection conn, TransactionType nextTransaction)
+      throws UserAbortException, SQLException {
+    try {
+      IotBenchProcedure proc = (IotBenchProcedure) this.getProcedure(nextTransaction.getProcedureClass());
+      proc.run(
+          conn,
+          gen,
+          terminalWarehouseID,
+          numWarehouses,
+          terminalDistrictLowerID,
+          terminalDistrictUpperID,
+          this);
+    } catch (ClassCastException ex) {
+      // fail gracefully
+      LOG.error("We have been invoked with an INVALID transactionType?!", ex);
+      throw new RuntimeException("Bad transaction type = " + nextTransaction);
+    }
+    return (TransactionStatus.SUCCESS);
   }
 
   @Override
-  protected TransactionStatus executeWork(Connection conn, TransactionType nextTrans)
-      throws UserAbortException, SQLException {
+  protected long getPreExecutionWaitInMillis(TransactionType type) {
+    // TPC-C 5.2.5.2: For keying times for each type of transaction.
+    return type.getPreExecutionWait();
+  }
 
-    // Identifica o tipo de transação a ser executada e chama o procedimento correspondente
-    Class<? extends Procedure> procClass = nextTrans.getProcedureClass();
+  @Override
+  protected long getPostExecutionWaitInMillis(TransactionType type) {
+    // TPC-C 5.2.5.4: For think times for each type of transaction.
+    long mean = type.getPostExecutionWait();
 
-    if (procClass.equals(GetSensorsAndDevicesFromRoom.class)) {
-      getSensorsAndDevicesFromRoom(conn);
-    } else if (procClass.equals(InsertSensorLogRecord.class)) {
-      insertSensorLogRecord(conn);
-    } else if (procClass.equals(InsertSensorRecord.class)) {
-      insertSensorRecord(conn);
-    } else if (procClass.equals(InsertUserRecord.class)) {
-      insertUserRecord(conn);
-    } else if (procClass.equals(InsertActionLogRecord.class)) {
-      insertActionLogRecord(conn);
-    } else if (procClass.equals(GetActiveSensorsPerRoom.class)) { // Nova transação
-      GetActiveSensorsPerRoom(conn);
-    } else {
-      throw new RuntimeException("Unknown procedure class: " + procClass.getName());
+    float c = this.getBenchmark().rng().nextFloat();
+    long thinkTime = (long) (-1 * Math.log(c) * mean);
+    if (thinkTime > 10 * mean) {
+      thinkTime = 10 * mean;
     }
 
-    return TransactionStatus.SUCCESS;
-  }
-
-  private void insertUserRecord(Connection conn) throws SQLException {
-    int userId = randScan.nextInt(1000);
-    String name = "User-" + userId;
-    String email = "user" + userId + "@iotbench.com";
-    String passwordHash = "hash" + userId;
-    int userType = randScan.nextInt(3) + 1;
-
-    this.procInsertUserRecord.run(conn, userId, name, email, passwordHash, userType);
-  }
-
-  private void insertActionLogRecord(Connection conn) throws SQLException {
-    int logId = randScan.nextInt();
-    int userId = randScan.nextInt();
-    int deviceId = randScan.nextInt();
-    String action = "ACTIVATE";
-    String status = "SUCCESS";
-
-    this.procInsertActionLogRecord.run(conn, logId, userId, deviceId, action, status);
-  }
-
-  private void getSensorsAndDevicesFromRoom(Connection conn) throws SQLException {
-    int roomId = randScan.nextInt();
-    this.procGetSensorsAndDevicesFromRoom.run(conn, roomId);
-  }
-
-  private void insertSensorLogRecord(Connection conn) throws SQLException {
-    int sensorId = randScan.nextInt();
-    double sensorValue = randScan.nextDouble();
-    this.procInsertSensorLogRecord.run(conn, sensorId, sensorValue);
-  }
-
-  private void insertSensorRecord(Connection conn) throws SQLException {
-    int sensorId = randScan.nextInt();
-    String sensorName = "Sensor-" + sensorId;
-    int sensorType = randScan.nextInt(5);
-    double sensorValue = randScan.nextDouble();
-    int deviceId = randScan.nextInt();
-
-    this.procInsertSensorRecord.run(conn, sensorId, sensorName, sensorType, sensorValue, deviceId);
-  }
-
-  private void GetActiveSensorsPerRoom(Connection conn) throws SQLException {
-    this.procGetActiveSensorsPerRoom.run(conn);
+    return thinkTime;
   }
 }

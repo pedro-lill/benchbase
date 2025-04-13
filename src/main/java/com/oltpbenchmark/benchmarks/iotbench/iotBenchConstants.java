@@ -1,46 +1,39 @@
+/*
+ * Copyright 2020 by OLTPBenchmark Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.oltpbenchmark.benchmarks.iotbench;
 
 public abstract class IotBenchConstants {
+  public static final String TABLENAME_DISTRICT = "district";
+  public static final String TABLENAME_WAREHOUSE = "warehouse";
+  public static final String TABLENAME_ITEM = "item";
+  public static final String TABLENAME_STOCK = "stock";
+  public static final String TABLENAME_CUSTOMER = "customer";
+  public static final String TABLENAME_HISTORY = "history";
+  public static final String TABLENAME_OPENORDER = "oorder";
+  public static final String TABLENAME_ORDERLINE = "order_line";
+  public static final String TABLENAME_NEWORDER = "new_order";
 
-  // Table names
-  public static final String TABLENAME_USERTABLE = "USERTABLE";
-  public static final String TABLENAME_HUB = "HUB";
-  public static final String TABLENAME_ROOM = "ROOM";
-  public static final String TABLENAME_DEVICE = "DEVICE";
-  public static final String TABLENAME_SENSOR = "SENSOR";
-  public static final String TABLENAME_SENSOR_LOG = "SENSORLOG";
-  public static final String TABLENAME_AUTOMATION_PROFILE = "AUTOMATIONPROFILE";
-  public static final String TABLENAME_ACTION_LOGS = "ACTIONLOGS";
-  public static final String TABLE_NAME = "AA";
-
-  public static final int NUM_USERS = 1000;
-  public static final int NUM_HUBS = 100;
-  public static final int NUM_ROOMS = 500;
-  public static final int NUM_DEVICES = 2000;
-  public static final int NUM_SENSORS = 5000;
-
-  // Record count baseline
-  public static final int RECORD_COUNT = 1000;
-
-  // Number of fields in the user table
-  public static final int NUM_FIELDS = 4;
-
-  // Maximum size for each field in the USERTABLE
-  public static final int MAX_FIELD_SIZE = 100; // chars
-
-  // Number of records to be loaded by each thread
-  public static final int THREAD_BATCH_SIZE = 50000;
-
-  // Max number of scan operations
-  public static final int MAX_SCAN = 1000;
-
-  // Limits for data retrieval in different tables
-  public static int LIMIT_USERS = 1000;
-  public static int LIMIT_HUBS = 1000;
-  public static int LIMIT_DEVICES = 2000;
-  public static int LIMIT_SENSORS = 5000;
-
-  // Other relevant constants (if needed)
-  public static final int MAX_NAME_LENGTH = 255;
-  public static final int MAX_STATUS_LENGTH = 50;
+  public static final String TABLENAME_USERTABLE = "user";
+  public static final String TABLENAME_HUB = "hub";
+  public static final String TABLENAME_ROOM = "room";
+  public static final String TABLENAME_DEVICE = "device";
+  public static final String TABLENAME_SENSOR = "sensor";
+  public static final String TABLENAME_SENSOR_LOG = "sensor_log";
+  public static final String TABLENAME_AUTOMATION_PROFILE = "automation_profile";
+  public static final String TABLENAME_ACTION_LOGS = "action_logs";
 }
