@@ -19,11 +19,14 @@ package com.oltpbenchmark.benchmarks.benchio;
 
 public abstract class BenchIOConstants {
   // Tabelas principais do sistema IoT
-  public static final String TABLENAME_USER = "user";
+  public static final String TABLENAME_USER = "usertable";
   public static final String TABLENAME_HUB = "hub";
   public static final String TABLENAME_ROOM = "room";
   public static final String TABLENAME_DEVICE = "device";
   public static final String TABLENAME_SENSOR = "sensor";
+  public static final String TABLENAME_SENSOR_TYPE = "sensor_type";
+  public static final String TABLENAME_DEVICE_TYPE = "device_type";
+  public static final String TABLENAME_AUTOMATIONPROFILE = "automationprofile";
 
   // Tabelas de registros e logs
   public static final String TABLENAME_SENSORLOG = "sensorlog";

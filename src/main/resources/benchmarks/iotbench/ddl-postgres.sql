@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS hub CASCADE;
 DROP TABLE IF EXISTS usertable CASCADE;
 
 -- Tabela usertable
-CREATE TABLE usertable (
+CREATE TABLE user (
     user_id INT PRIMARY KEY,
     name_user VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE automationprofile (
     status VARCHAR(50) NOT NULL,
     command VARCHAR(255) NOT NULL,
     FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES usertable (user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES user (user_id) ON DELETE CASCADE
 );
 
 -- Tabela actionlogs
@@ -81,7 +81,7 @@ CREATE TABLE actionlogs (
     action VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES usertable (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES user (user_id) ON DELETE CASCADE,
     FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE
 );
 

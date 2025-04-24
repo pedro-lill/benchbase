@@ -30,6 +30,10 @@ public final class BenchIOConfig {
   public static final int configRoomsPerHub = 10; // Salas por hub
   public static final int configDevicesPerRoom = 5; // Dispositivos por sala
   public static final int configSensorsPerDevice = 3; // Sensores por dispositivo
+  public static final int configAutomationProfiles = 5;
+  public static final int configInitialSensorLogs = 8;
+  public static final int configInitialActionLogs = 6;
+
   // SENSOR_TYPE_TEMPERATURE
   // SENSOR_TYPE_HUMIDITY
   // SENSOR_TYPE_MOTION
@@ -45,6 +49,7 @@ public final class BenchIOConfig {
   public static final int DEVICE_TYPE_LIGHT = 1;
   public static final int DEVICE_TYPE_THERMOSTAT = 2;
   public static final int DEVICE_TYPE_SECURITY = 3;
+  public static final int DEVICE_TYPE_LOCK = 4;
 
   // Tipos de sensores
   public static final int SENSOR_TYPE_TEMPERATURE = 1;

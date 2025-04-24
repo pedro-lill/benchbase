@@ -19,13 +19,14 @@ package com.oltpbenchmark.benchmarks.benchio.procedures;
 
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.benchmarks.benchio.BenchIOWorker;
+import com.oltpbenchmark.types.TransactionStatus;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Random;
 
 public abstract class BenchIOProcedure extends Procedure {
 
-  public abstract void run(
+  public abstract TransactionStatus run(
       Connection conn,
       Random gen,
       int terminalHubID,

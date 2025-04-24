@@ -21,7 +21,6 @@ import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.benchmarks.benchio.procedures.AutomationTriggerProcedure;
 import com.oltpbenchmark.benchmarks.benchio.procedures.DeviceControlProcedure;
 import com.oltpbenchmark.benchmarks.benchio.procedures.SensorReadingProcedure;
-import com.oltpbenchmark.benchmarks.benchio.procedures.UserSimulationProcedure;
 import java.util.List;
 
 public class TestBenchIOBenchmark extends AbstractTestBenchmarkModule<BenchIOBenchmark> {
@@ -30,8 +29,7 @@ public class TestBenchIOBenchmark extends AbstractTestBenchmarkModule<BenchIOBen
       List.of(
           AutomationTriggerProcedure.class,
           DeviceControlProcedure.class,
-          SensorReadingProcedure.class,
-          UserSimulationProcedure.class);
+          SensorReadingProcedure.class);
 
   @Override
   public List<Class<? extends Procedure>> procedures() {

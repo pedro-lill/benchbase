@@ -1,26 +1,10 @@
-/*
- * Copyright 2020 by OLTPBenchmark Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package com.oltpbenchmark.benchmarks.benchio.procedures;
 
+import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.benchio.BenchIOConfig;
 import com.oltpbenchmark.benchmarks.benchio.BenchIOConstants;
-import com.oltpbenchmark.benchmarks.benchio.BenchIOWorker;
+import com.oltpbenchmark.types.TransactionStatus;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,81 +14,75 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceControlProcedure extends BenchIOProcedure {
+public class DeviceControlProcedure extends Procedure {
 
   private static final Logger LOG = LoggerFactory.getLogger(DeviceControlProcedure.class);
 
+  // SQL Statements
   public final SQLStmt getRandomDeviceStmt =
       new SQLStmt(
           "SELECT device_id, type, status FROM "
               + BenchIOConstants.TABLENAME_DEVICE
-              + " WHERE room_id = ? ORDER BY RAND() LIMIT 1");
+              + " WHERE room_id BETWEEN ? AND ? ORDER BY RAND() LIMIT 1");
 
   public final SQLStmt updateDeviceStmt =
       new SQLStmt(
-          "UPDATE " + BenchIOConstants.TABLENAME_DEVICE + " SET status = ? WHERE device_id = ?");
+          "UPDATE "
+              + BenchIOConstants.TABLENAME_DEVICE
+              + " SET status = ?, last_updated = NOW() WHERE device_id = ?");
 
   public final SQLStmt logActionStmt =
       new SQLStmt(
           "INSERT INTO "
               + BenchIOConstants.TABLENAME_ACTIONLOGS
-              + " (device_id, action, status, timestamp) VALUES (?, ?, ?, ?)");
+              + " (user_id, device_id, action, status, date) VALUES (?, ?, ?, ?, ?)");
 
-  @Override
-  public void run(
+  public TransactionStatus run(
       Connection conn,
       Random gen,
       int terminalHubID,
-      int numHubs,
       int terminalRoomLowerID,
-      int terminalRoomUpperID,
-      BenchIOWorker worker)
+      int terminalRoomUpperID)
       throws SQLException {
 
     try {
-      // 1. Selecionar dispositivo aleatório na sala
-      DeviceInfo device = getRandomDeviceInRoom(conn, terminalRoomLowerID);
+      // 1. Selecionar dispositivo aleatório na faixa de salas
+      DeviceInfo device = getRandomDevice(conn, terminalRoomLowerID, terminalRoomUpperID);
       if (device == null) {
-        LOG.warn("Nenhum dispositivo encontrado na sala {}", terminalRoomLowerID);
-        return;
+        LOG.warn("No devices found in rooms {}-{}", terminalRoomLowerID, terminalRoomUpperID);
+        return TransactionStatus.RETRY;
       }
 
-      // 2. Decidir ação baseada no tipo de dispositivo
+      // 2. Gerar ação baseada no tipo de dispositivo
       DeviceAction action = generateDeviceAction(gen, device.type);
-
-      // 3. Executar ação se não for NO_ACTION
-      if (!"NO_ACTION".equals(action.command)) {
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, updateDeviceStmt)) {
-          stmt.setString(1, action.newStatus);
-          stmt.setInt(2, device.deviceId);
-          stmt.executeUpdate();
-        }
-
-        // 4. Registrar ação
-        Timestamp now = new Timestamp(System.currentTimeMillis());
-        try (PreparedStatement stmt = this.getPreparedStatement(conn, logActionStmt)) {
-          stmt.setInt(1, device.deviceId);
-          stmt.setString(2, action.command);
-          stmt.setString(3, action.newStatus);
-          stmt.setTimestamp(4, now);
-          stmt.executeUpdate();
-        }
-
-        LOG.debug(
-            "Dispositivo {} alterado para {} via comando {}",
-            device.deviceId,
-            action.newStatus,
-            action.command);
+      if (action == null || "NO_ACTION".equals(action.command)) {
+        return TransactionStatus.SUCCESS;
       }
+
+      // 3. Executar ação
+      updateDeviceStatus(conn, device.deviceId, action.newStatus);
+
+      // 4. Registrar ação
+      logDeviceAction(
+          conn, gen.nextInt(BenchIOConfig.configUserCount) + 1, device.deviceId, action);
+
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Device {} set to {} via {}", device.deviceId, action.newStatus, action.command);
+      }
+
+      return TransactionStatus.SUCCESS;
+
     } catch (SQLException e) {
-      LOG.error("Erro ao controlar dispositivo", e);
+      LOG.error("Error controlling device", e);
       throw e;
     }
   }
 
-  private DeviceInfo getRandomDeviceInRoom(Connection conn, int roomId) throws SQLException {
+  private DeviceInfo getRandomDevice(Connection conn, int roomLower, int roomUpper)
+      throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, getRandomDeviceStmt)) {
-      stmt.setInt(1, roomId);
+      stmt.setInt(1, roomLower);
+      stmt.setInt(2, roomUpper);
       try (ResultSet rs = stmt.executeQuery()) {
         if (rs.next()) {
           return new DeviceInfo(rs.getInt("device_id"), rs.getInt("type"), rs.getString("status"));
@@ -114,28 +92,60 @@ public class DeviceControlProcedure extends BenchIOProcedure {
     return null;
   }
 
+  private void updateDeviceStatus(Connection conn, int deviceId, String newStatus)
+      throws SQLException {
+    try (PreparedStatement stmt = this.getPreparedStatement(conn, updateDeviceStmt)) {
+      stmt.setString(1, newStatus);
+      stmt.setInt(2, deviceId);
+      stmt.executeUpdate();
+    }
+  }
+
+  private void logDeviceAction(Connection conn, int userId, int deviceId, DeviceAction action)
+      throws SQLException {
+    try (PreparedStatement stmt = this.getPreparedStatement(conn, logActionStmt)) {
+      stmt.setInt(1, userId);
+      stmt.setInt(2, deviceId);
+      stmt.setString(3, action.command);
+      stmt.setString(4, action.newStatus);
+      stmt.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+      stmt.executeUpdate();
+    }
+  }
+
   private DeviceAction generateDeviceAction(Random gen, int deviceType) {
-    // Lógica mais sofisticada baseada no tipo de dispositivo
     double rand = gen.nextDouble();
 
-    if (deviceType == BenchIOConfig.DEVICE_TYPE_LIGHT) {
-      if (rand > 0.8) {
-        return new DeviceAction("TOGGLE", gen.nextBoolean() ? "ON" : "OFF");
-      }
-    } else if (deviceType == BenchIOConfig.DEVICE_TYPE_THERMOSTAT) {
-      if (rand > 0.9) {
-        return new DeviceAction("ADJUST", "TEMP_" + (18 + gen.nextInt(5)));
-      }
+    switch (deviceType) {
+      case BenchIOConfig.DEVICE_TYPE_LIGHT:
+        if (rand > 0.7) {
+          return new DeviceAction("TOGGLE", rand > 0.85 ? "ON" : "OFF");
+        }
+        break;
+
+      case BenchIOConfig.DEVICE_TYPE_THERMOSTAT:
+        if (rand > 0.8) {
+          return new DeviceAction("SET_TEMP", String.valueOf(18 + gen.nextInt(10)));
+        }
+        break;
+
+      case BenchIOConfig.DEVICE_TYPE_LOCK:
+        if (rand > 0.9) {
+          return new DeviceAction(
+              rand > 0.5 ? "LOCK" : "UNLOCK", rand > 0.5 ? "LOCKED" : "UNLOCKED");
+        }
+        break;
     }
     return new DeviceAction("NO_ACTION", null);
   }
 
+  // Classes auxiliares
   private static class DeviceInfo {
-    public final int deviceId;
-    public final int type;
-    public final String status;
+    final int deviceId;
+    final int type;
+    final String status;
 
-    public DeviceInfo(int deviceId, int type, String status) {
+    DeviceInfo(int deviceId, int type, String status) {
       this.deviceId = deviceId;
       this.type = type;
       this.status = status;
@@ -143,10 +153,10 @@ public class DeviceControlProcedure extends BenchIOProcedure {
   }
 
   private static class DeviceAction {
-    public final String command;
-    public final String newStatus;
+    final String command;
+    final String newStatus;
 
-    public DeviceAction(String command, String newStatus) {
+    DeviceAction(String command, String newStatus) {
       this.command = command;
       this.newStatus = newStatus;
     }

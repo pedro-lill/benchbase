@@ -1,4 +1,3 @@
--- Remove as tabelas se já existirem
 DROP TABLE IF EXISTS actionlogs CASCADE;
 DROP TABLE IF EXISTS automationprofile CASCADE;
 DROP TABLE IF EXISTS sensorlog CASCADE;
@@ -6,10 +5,10 @@ DROP TABLE IF EXISTS sensor CASCADE;
 DROP TABLE IF EXISTS device CASCADE;
 DROP TABLE IF EXISTS room CASCADE;
 DROP TABLE IF EXISTS hub CASCADE;
-DROP TABLE IF EXISTS user CASCADE;
+DROP TABLE IF EXISTS usertable CASCADE;
 
 -- Tabela usertable
-CREATE TABLE user (
+CREATE TABLE usertable (
     user_id INT PRIMARY KEY,
     name_iot VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
@@ -70,7 +69,7 @@ CREATE TABLE automationprofile (
     status VARCHAR(50) NOT NULL,
     command VARCHAR(255) NOT NULL,
     FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES user (user_id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES usertable  (user_id) ON DELETE CASCADE
 );
 
 -- Tabela actionlogs
@@ -81,13 +80,6 @@ CREATE TABLE actionlogs (
     action VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL,
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES usertable  (user_id) ON DELETE CASCADE,
     FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE
 );
-
--- Índices para melhorar o desempenho das consultas
-CREATE INDEX idx_sensorlog_sensor_id ON sensorlog (sensor_id);
-CREATE INDEX idx_actionlogs_user_id ON actionlogs (user_id);
-CREATE INDEX idx_actionlogs_device_id ON actionlogs (device_id);
-CREATE INDEX idx_automationprofile_device_id ON automationprofile (device_id);
-CREATE INDEX idx_automationprofile_user_id ON automationprofile (user_id);

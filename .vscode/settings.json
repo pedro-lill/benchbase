@@ -4,5 +4,6 @@
     },
     "java.format.settings.profile": "GoogleStyle",
     "java.format.enabled": true,
-    "editor.formatOnSaveMode": "modificationsIfAvailable"
+    "editor.formatOnSaveMode": "modificationsIfAvailable",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

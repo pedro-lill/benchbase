@@ -15,11 +15,14 @@ public final class BenchIOWorker extends Worker<BenchIOBenchmark> {
 
   private static final Logger LOG = LoggerFactory.getLogger(BenchIOWorker.class);
 
+  // Configurações de partição de dados
   private final int terminalHubID;
   private final int terminalRoomLowerID;
   private final int terminalRoomUpperID;
   private final int numHubs;
-  private final Random gen;
+
+  // Gerador de números aleatórios
+  private final Random randomGenerator;
 
   public BenchIOWorker(
       BenchIOBenchmark benchmarkModule,
@@ -33,33 +36,72 @@ public final class BenchIOWorker extends Worker<BenchIOBenchmark> {
     this.terminalRoomLowerID = terminalRoomLowerID;
     this.terminalRoomUpperID = terminalRoomUpperID;
     this.numHubs = numHubs;
-    this.gen = benchmarkModule.getRandomGenerator(); // Usando o gerador do benchmark
+    this.randomGenerator = benchmarkModule.getRandomGenerator();
+
+    LOG.debug(
+        "Initialized worker {} for hub {} (rooms {} to {})",
+        id,
+        terminalHubID,
+        terminalRoomLowerID,
+        terminalRoomUpperID);
   }
 
   @Override
   protected TransactionStatus executeWork(Connection conn, TransactionType nextTransaction)
       throws UserAbortException, SQLException {
     try {
+      // Obtém a instância do procedimento
       BenchIOProcedure proc =
           (BenchIOProcedure) this.getProcedure(nextTransaction.getProcedureClass());
-      proc.run(conn, gen, terminalHubID, numHubs, terminalRoomLowerID, terminalRoomUpperID, this);
+
+      // Executa o procedimento com os parâmetros adequados
+      return proc.run(
+          conn,
+          randomGenerator,
+          terminalHubID,
+          numHubs,
+          terminalRoomLowerID,
+          terminalRoomUpperID,
+          this);
+
     } catch (ClassCastException ex) {
-      LOG.error("Tipo de transação inválido: {}", nextTransaction, ex);
-      throw new RuntimeException("Tipo de transação inválido = " + nextTransaction);
+      LOG.error("Invalid transaction type: {} - {}", nextTransaction, ex.getMessage());
+      throw new UserAbortException("Invalid transaction type: " + nextTransaction);
+    } catch (SQLException ex) {
+      LOG.error("SQL error executing transaction {}: {}", nextTransaction, ex.getMessage());
+      throw ex;
     }
-    return TransactionStatus.SUCCESS;
   }
 
   @Override
   protected long getPreExecutionWaitInMillis(TransactionType type) {
+    // Pode ser personalizado por tipo de transação se necessário
     return type.getPreExecutionWait();
   }
 
   @Override
   protected long getPostExecutionWaitInMillis(TransactionType type) {
+    // Implementação de think time com distribuição exponencial
     long mean = type.getPostExecutionWait();
-    float c = this.gen.nextFloat(); // Usando o gerador local
-    long thinkTime = (long) (-1 * Math.log(c) * mean);
-    return Math.min(thinkTime, 10 * mean);
+    if (mean <= 0) return 0;
+
+    float u = this.randomGenerator.nextFloat();
+    long thinkTime = (long) (-mean * Math.log(1 - u));
+
+    // Limita o think time para evitar valores extremamente altos
+    return Math.min(thinkTime, mean * 10);
+  }
+
+  // Métodos auxiliares para acesso aos parâmetros de partição
+  public int getTerminalHubID() {
+    return terminalHubID;
+  }
+
+  public int getTerminalRoomLowerID() {
+    return terminalRoomLowerID;
+  }
+
+  public int getTerminalRoomUpperID() {
+    return terminalRoomUpperID;
   }
 }

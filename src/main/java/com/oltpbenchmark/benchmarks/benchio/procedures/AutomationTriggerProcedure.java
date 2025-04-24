@@ -1,25 +1,9 @@
-/*
- * Copyright 2020 by OLTPBenchmark Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package com.oltpbenchmark.benchmarks.benchio.procedures;
 
+import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.benchio.BenchIOConstants;
-import com.oltpbenchmark.benchmarks.benchio.BenchIOWorker;
+import com.oltpbenchmark.types.TransactionStatus;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -30,53 +14,74 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AutomationTriggerProcedure extends BenchIOProcedure {
+public class AutomationTriggerProcedure extends Procedure {
 
   private static final Logger LOG = LoggerFactory.getLogger(AutomationTriggerProcedure.class);
 
+  // SQL Statements
   public final SQLStmt getDevicesInRoomStmt =
       new SQLStmt(
           "SELECT device_id FROM "
               + BenchIOConstants.TABLENAME_DEVICE
-              + " WHERE room_id BETWEEN ? AND ?");
+              + " WHERE room_id BETWEEN ? AND ? AND status = 'ACTIVE'");
 
   public final SQLStmt getAutomationRules =
       new SQLStmt(
-          "SELECT * FROM "
-              + BenchIOConstants.TABLENAME_AUTOMATION
+          "SELECT rule_id, trigger_type, threshold_value, action_command "
+              + "FROM "
+              + BenchIOConstants.TABLENAME_AUTOMATIONPROFILE
               + " WHERE device_id = ? AND status = 'ACTIVE'");
 
   public final SQLStmt getCurrentSensorValue =
       new SQLStmt(
-          "SELECT value FROM "
+          "SELECT s.value FROM "
               + BenchIOConstants.TABLENAME_SENSOR
-              + " WHERE device_id = ? AND type = ?");
+              + " s "
+              + "JOIN "
+              + BenchIOConstants.TABLENAME_DEVICE
+              + " d ON s.device_id = d.device_id "
+              + "WHERE s.device_id = ? AND s.type = ?");
 
   public final SQLStmt executeDeviceAction =
       new SQLStmt(
-          "UPDATE " + BenchIOConstants.TABLENAME_DEVICE + " SET status = ? WHERE device_id = ?");
+          "UPDATE "
+              + BenchIOConstants.TABLENAME_DEVICE
+              + " SET status = ?, last_updated = NOW() WHERE device_id = ?");
 
-  @Override
-  public void run(
+  public final SQLStmt logAutomationAction =
+      new SQLStmt(
+          "INSERT INTO "
+              + BenchIOConstants.TABLENAME_ACTIONLOGS
+              + " (device_id, action, status, date) VALUES (?, ?, ?, NOW())");
+
+  public TransactionStatus run(
       Connection conn,
       Random gen,
       int terminalHubID,
-      int numHubs,
       int terminalRoomLowerID,
-      int terminalRoomUpperID,
-      BenchIOWorker worker)
+      int terminalRoomUpperID)
       throws SQLException {
 
     try {
-      // 1. Obter dispositivos na faixa de salas
+      // 1. Obter dispositivos ativos na faixa de salas
       List<Integer> devices = getDevicesInRoomRange(conn, terminalRoomLowerID, terminalRoomUpperID);
-
-      // 2. Verificar regras para cada dispositivo
-      for (int deviceId : devices) {
-        checkDeviceAutomation(conn, deviceId);
+      if (devices.isEmpty()) {
+        LOG.debug("No active devices in rooms {}-{}", terminalRoomLowerID, terminalRoomUpperID);
+        return TransactionStatus.SUCCESS;
       }
+
+      // 2. Verificar e executar automações
+      boolean triggered = false;
+      for (int deviceId : devices) {
+        if (checkAndTriggerAutomation(conn, deviceId)) {
+          triggered = true;
+        }
+      }
+
+      return triggered ? TransactionStatus.SUCCESS : TransactionStatus.RETRY;
+
     } catch (SQLException e) {
-      LOG.error("Erro durante verificação de automação", e);
+      LOG.error("Error during automation trigger", e);
       throw e;
     }
   }
@@ -98,7 +103,9 @@ public class AutomationTriggerProcedure extends BenchIOProcedure {
     return devices;
   }
 
-  private void checkDeviceAutomation(Connection conn, int deviceId) throws SQLException {
+  private boolean checkAndTriggerAutomation(Connection conn, int deviceId) throws SQLException {
+    boolean triggered = false;
+
     try (PreparedStatement stmt = this.getPreparedStatement(conn, getAutomationRules)) {
       stmt.setInt(1, deviceId);
 
@@ -107,14 +114,17 @@ public class AutomationTriggerProcedure extends BenchIOProcedure {
           int triggerType = rs.getInt("trigger_type");
           double threshold = rs.getDouble("threshold_value");
           String action = rs.getString("action_command");
+          int ruleId = rs.getInt("rule_id");
 
           if (shouldTrigger(conn, deviceId, triggerType, threshold)) {
             executeAutomationAction(conn, deviceId, action);
-            LOG.debug("Automação acionada para dispositivo {}: {}", deviceId, action);
+            logAutomationEvent(conn, deviceId, "Rule " + ruleId + ": " + action);
+            triggered = true;
           }
         }
       }
     }
+    return triggered;
   }
 
   private boolean shouldTrigger(Connection conn, int deviceId, int triggerType, double threshold)
@@ -135,20 +145,36 @@ public class AutomationTriggerProcedure extends BenchIOProcedure {
 
   private void executeAutomationAction(Connection conn, int deviceId, String action)
       throws SQLException {
+    String deviceStatus = convertActionToStatus(action);
+
     try (PreparedStatement stmt = this.getPreparedStatement(conn, executeDeviceAction)) {
-      // Converte a ação para um status de dispositivo
-      String deviceStatus = convertActionToStatus(action);
       stmt.setString(1, deviceStatus);
       stmt.setInt(2, deviceId);
       stmt.executeUpdate();
     }
   }
 
+  private void logAutomationEvent(Connection conn, int deviceId, String action)
+      throws SQLException {
+    try (PreparedStatement stmt = this.getPreparedStatement(conn, logAutomationAction)) {
+      stmt.setInt(1, deviceId);
+      stmt.setString(2, action);
+      stmt.setString(3, "EXECUTED");
+      stmt.executeUpdate();
+    }
+  }
+
   private String convertActionToStatus(String action) {
-    // Lógica simples de conversão - pode ser expandida conforme necessário
+    if (action == null || action.isEmpty()) {
+      return "UNKNOWN";
+    }
+    action = action.toUpperCase();
+
     if (action.contains("ON")) return "ON";
     if (action.contains("OFF")) return "OFF";
-    if (action.contains("TEMP")) return action; // Ex: "TEMP_22"
+    if (action.contains("TEMP_")) return action;
+    if (action.contains("LOCK")) return action.contains("UNLOCK") ? "UNLOCKED" : "LOCKED";
+
     return action;
   }
 }
