@@ -1,6 +1,7 @@
 package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
 import com.oltpbenchmark.api.Procedure;
+import com.oltpbenchmark.benchmarks.iotbench.IotBenchConstants;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -19,7 +20,10 @@ public class InsertSensorData extends Procedure {
         generateSeriesData(
             random, SeriesType.values()[random.nextInt(SeriesType.values().length)], FIELD1);
 
-    String insertSQL = "INSERT INTO USERTABLE (FIELD1, FIELD2, FIELD3) VALUES (?, ?, ?)";
+    String insertSQL =
+        "INSERT INTO "
+            + IotBenchConstants.TABLENAME_SENSOR
+            + " (FIELD1, FIELD2, FIELD3) VALUES (?, ?, ?)";
     try (PreparedStatement stmt = conn.prepareStatement(insertSQL)) {
       stmt.setDouble(1, FIELD1);
       stmt.setDouble(2, FIELD2);

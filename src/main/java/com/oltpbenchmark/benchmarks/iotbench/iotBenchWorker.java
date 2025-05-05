@@ -56,8 +56,8 @@ class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
       insertUserRecord(conn);
     } else if (procClass.equals(InsertActionLogRecord.class)) {
       insertActionLogRecord(conn);
-    } else if (procClass.equals(GetActiveSensorsPerRoom.class)) { // Nova transação
-      GetActiveSensorsPerRoom(conn);
+    } else if (procClass.equals(GetActiveSensorsPerRoom.class)) {
+      getActiveSensorsPerRoom(conn);
     } else {
       throw new RuntimeException("Unknown procedure class: " + procClass.getName());
     }
@@ -66,7 +66,7 @@ class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
   }
 
   private void insertUserRecord(Connection conn) throws SQLException {
-    int userId = randScan.nextInt(1000);
+    int userId = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
     String name = "User-" + userId;
     String email = "user" + userId + "@iotbench.com";
     String passwordHash = "hash" + userId;
@@ -77,7 +77,7 @@ class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
 
   private void insertActionLogRecord(Connection conn) throws SQLException {
     int logId = randScan.nextInt();
-    int userId = randScan.nextInt();
+    int userId = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
     int deviceId = randScan.nextInt();
     String action = "ACTIVATE";
     String status = "SUCCESS";
@@ -106,7 +106,7 @@ class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
     this.procInsertSensorRecord.run(conn, sensorId, sensorName, sensorType, sensorValue, deviceId);
   }
 
-  private void GetActiveSensorsPerRoom(Connection conn) throws SQLException {
+  private void getActiveSensorsPerRoom(Connection conn) throws SQLException {
     this.procGetActiveSensorsPerRoom.run(conn);
   }
 }

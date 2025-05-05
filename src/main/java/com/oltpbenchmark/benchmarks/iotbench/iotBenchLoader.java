@@ -76,7 +76,7 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
   }
 
   private void loadUsers(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable(IotBenchConstants.TABLENAME_USERTABLE);
+    Table catalog_tbl = benchmark.getCatalog().getTable("usertable");
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numUsers; i++) {
@@ -92,7 +92,7 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
   }
 
   private void loadRooms(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable(IotBenchConstants.TABLENAME_ROOM);
+    Table catalog_tbl = benchmark.getCatalog().getTable("room");
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numRooms; i++) {
@@ -107,7 +107,7 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
   }
 
   private void loadHubs(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable(IotBenchConstants.TABLENAME_HUB);
+    Table catalog_tbl = benchmark.getCatalog().getTable("hub");
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numHubs; i++) {
@@ -122,7 +122,7 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
   }
 
   private void loadSensors(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable(IotBenchConstants.TABLENAME_SENSOR);
+    Table catalog_tbl = benchmark.getCatalog().getTable("sensor");
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numSensors; i++) {
@@ -139,7 +139,7 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
   }
 
   private void loadSensorLogs(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable(IotBenchConstants.TABLENAME_SENSOR_LOG);
+    Table catalog_tbl = benchmark.getCatalog().getTable("sensorlog");
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numSensorLogs; i++) {
@@ -156,7 +156,7 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
   }
 
   private void loadActionLogs(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable(IotBenchConstants.TABLENAME_ACTION_LOGS);
+    Table catalog_tbl = benchmark.getCatalog().getTable("actionlogs");
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numActionLogs; i++) {

@@ -25,25 +25,27 @@
         </work>
     </works>
 
-    <!-- IotBench Procedures declaration -->
+
+
+    <!-- IotBench Procedures declaration pedro -->
     <transactiontypes>
         <transactiontype>
-            <name>ReadRecord</name>
+            <name>InsertSensorLogRecord</name>
         </transactiontype>
         <transactiontype>
-            <name>InsertRecord</name>
+            <name>InsertActionLogRecord</name>
         </transactiontype>
         <transactiontype>
-            <name>ScanRecord</name>
+            <name>InsertUserRecord</name>
         </transactiontype>
         <transactiontype>
-            <name>UpdateRecord</name>
+            <name>GetActiveSensorsPerRoom </name>
         </transactiontype>
         <transactiontype>
-            <name>DeleteRecord</name>
+            <name>GetSensorsAndDevicesFromRoom</name>
         </transactiontype>
         <transactiontype>
-            <name>ReadModifyWriteRecord</name>
+            <name>InsertSensorRecord</name>
         </transactiontype>
     </transactiontypes>
 </parameters>

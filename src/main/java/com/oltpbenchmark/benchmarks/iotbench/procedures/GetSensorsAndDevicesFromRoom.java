@@ -11,10 +11,11 @@ import java.sql.SQLException;
 public class GetSensorsAndDevicesFromRoom extends Procedure {
 
   public final SQLStmt getDevicesFromRoom =
-      new SQLStmt("SELECT deviceId FROM Device WHERE room_id = ?");
+      new SQLStmt(
+          "SELECT deviceId FROM " + IotBenchConstants.TABLENAME_DEVICE + " WHERE room_id = ?");
 
   public final SQLStmt getSensorsFromDevices =
-      new SQLStmt("SELECT * FROM Sensor WHERE deviceId IN (??)");
+      new SQLStmt("SELECT * FROM " + IotBenchConstants.TABLENAME_SENSOR + "WHERE deviceId IN (??)");
 
   public void run(Connection conn, int roomId) throws SQLException {
 

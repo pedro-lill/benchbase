@@ -2,14 +2,15 @@
 <parameters>
 
     <!-- Connection details -->
-    <type>POSTGRES</type>
+    <type>postgres</type>
     <driver>org.postgresql.Driver</driver>
-    <url>jdbc:postgresql://localhost:5432/benchbase?sslmode=disable&amp;ApplicationName=iotbench&amp;reWriteBatchedInserts=true</url>
-    <username>admin</username>
+    <url>jdbc:postgresql://localhost:5432/benchio?rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=True&amp;sslMode=DISABLED</url>
+    <username>postgres</username>
     <password>password</password>
     <reconnectOnConnectionFailure>true</reconnectOnConnectionFailure>
     <isolation>TRANSACTION_SERIALIZABLE</isolation>
-    <batchsize>128</batchsize>
+    <batchsize>1000</batchsize>
+    <scalefactor>1.0</scalefactor>
 
     <!-- Scalefactor in iotbench is *1000 the number of rows in the USERTABLE-->
     <scalefactor>1</scalefactor>
