@@ -60,6 +60,14 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
         new LoaderThread(this.benchmark) {
           @Override
           public void load(Connection conn) throws SQLException {
+            loadDevices(conn);
+          }
+        });
+
+    threads.add(
+        new LoaderThread(this.benchmark) {
+          @Override
+          public void load(Connection conn) throws SQLException {
             loadSensorLogs(conn);
           }
         });
@@ -129,8 +137,9 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
         ps.setInt(1, i + 1);
         ps.setString(2, "Sensor" + (i + 1));
         ps.setString(3, "Type" + (i % 3));
-        ps.setInt(4, (i % this.benchmark.numRooms) + 1);
-        ps.setInt(5, (i % this.benchmark.numHubs) + 1);
+        // valoress para o campo vlaue e o device_id
+        ps.setDouble(4, 20 + rand.nextDouble() * 10);
+        ps.setInt(5, 1 + rand.nextInt(this.benchmark.numHubs));
         ps.addBatch();
         if (i % BATCH_SIZE == 0) ps.executeBatch();
       }
@@ -143,11 +152,29 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numSensorLogs; i++) {
-        ps.setInt(1, i + 1);
-        ps.setInt(2, (i % this.benchmark.numSensors) + 1);
+        int sensor_id = 1 + rand.nextInt(this.benchmark.numSensors); // FK válida
+
+        ps.setInt(1, i + 1); // log_id
+        ps.setInt(2, sensor_id); // sensor_id
+        ps.setDouble(4, 20 + rand.nextDouble() * 10);
         ps.setTimestamp(
             3, new java.sql.Timestamp(System.currentTimeMillis() - rand.nextInt(1000000000)));
-        ps.setDouble(4, 20 + rand.nextDouble() * 10);
+        ps.addBatch();
+        if (i % BATCH_SIZE == 0) ps.executeBatch();
+      }
+      ps.executeBatch();
+    }
+  }
+
+  private void loadDevices(Connection conn) throws SQLException {
+    Table catalog_tbl = benchmark.getCatalog().getTable("device");
+    try (PreparedStatement ps =
+        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
+      for (int i = 0; i < this.benchmark.numDevices; i++) {
+        ps.setInt(1, i + 1);
+        ps.setString(2, "Device" + (i + 1));
+        ps.setString(3, "Type" + (i % 3));
+        ps.setInt(4, 1 + rand.nextInt(this.benchmark.numUsers));
         ps.addBatch();
         if (i % BATCH_SIZE == 0) ps.executeBatch();
       }
@@ -160,11 +187,16 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
     try (PreparedStatement ps =
         conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
       for (int i = 0; i < this.benchmark.numActionLogs; i++) {
+        int user_id = 1 + rand.nextInt(this.benchmark.numUsers);
+        int device_id = 1 + rand.nextInt(this.benchmark.numUsers);
         ps.setInt(1, i + 1);
-        ps.setInt(2, (i % this.benchmark.numUsers) + 1);
-        ps.setString(3, "Action" + (i + 1));
+        ps.setInt(2, user_id);
+        ps.setInt(3, device_id);
+        ps.setString(4, "ACTION_" + (i + 1));
+        ps.setString(5, (i % 2 == 0) ? "SUCCESS" : "FAILURE");
         ps.setTimestamp(
-            4, new java.sql.Timestamp(System.currentTimeMillis() - rand.nextInt(1000000000)));
+            6, new java.sql.Timestamp(System.currentTimeMillis() - rand.nextInt(1000000000)));
+
         ps.addBatch();
         if (i % BATCH_SIZE == 0) ps.executeBatch();
       }

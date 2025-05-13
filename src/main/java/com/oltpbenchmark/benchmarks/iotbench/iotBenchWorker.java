@@ -66,44 +66,43 @@ class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
   }
 
   private void insertUserRecord(Connection conn) throws SQLException {
-    int userId = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
-    String name = "User-" + userId;
-    String email = "user" + userId + "@iotbench.com";
-    String passwordHash = "hash" + userId;
-    int userType = randScan.nextInt(3) + 1;
+    int user_id = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
+    String name = "User-" + user_id;
+    String email = "user" + user_id + "@iotbench.com";
+    String password_hash = "hash" + user_id;
+    int user_type = randScan.nextInt(3) + 1;
 
-    this.procInsertUserRecord.run(conn, userId, name, email, passwordHash, userType);
+    this.procInsertUserRecord.run(conn, user_id, name, email, password_hash, user_type);
   }
 
   private void insertActionLogRecord(Connection conn) throws SQLException {
-    int logId = randScan.nextInt();
-    int userId = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
-    int deviceId = randScan.nextInt();
+    int log_id = randScan.nextInt();
+    int user_id = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
+    int device_id = randScan.nextInt();
     String action = "ACTIVATE";
     String status = "SUCCESS";
 
-    this.procInsertActionLogRecord.run(conn, logId, userId, deviceId, action, status);
+    this.procInsertActionLogRecord.run(conn, log_id, user_id, device_id, action, status);
   }
 
   private void getSensorsAndDevicesFromRoom(Connection conn) throws SQLException {
-    int roomId = randScan.nextInt();
-    this.procGetSensorsAndDevicesFromRoom.run(conn, roomId);
+    int room_id = randScan.nextInt();
+    this.procGetSensorsAndDevicesFromRoom.run(conn, room_id);
   }
 
   private void insertSensorLogRecord(Connection conn) throws SQLException {
-    int sensorId = randScan.nextInt();
-    double sensorValue = randScan.nextDouble();
-    this.procInsertSensorLogRecord.run(conn, sensorId, sensorValue);
+    double value = randScan.nextDouble();
+    this.procInsertSensorLogRecord.run(conn, value);
   }
 
   private void insertSensorRecord(Connection conn) throws SQLException {
-    int sensorId = randScan.nextInt();
-    String sensorName = "Sensor-" + sensorId;
-    int sensorType = randScan.nextInt(5);
-    double sensorValue = randScan.nextDouble();
-    int deviceId = randScan.nextInt();
+    int sensor_id = randScan.nextInt();
+    String name = "Sensor-" + sensor_id;
+    int type = randScan.nextInt(5);
+    double value = randScan.nextDouble();
+    int device_id = randScan.nextInt();
 
-    this.procInsertSensorRecord.run(conn, sensorId, sensorName, sensorType, sensorValue, deviceId);
+    this.procInsertSensorRecord.run(conn, sensor_id, name, type, value, device_id);
   }
 
   private void getActiveSensorsPerRoom(Connection conn) throws SQLException {

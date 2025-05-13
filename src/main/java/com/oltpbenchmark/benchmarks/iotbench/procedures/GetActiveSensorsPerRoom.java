@@ -18,10 +18,10 @@ public class GetActiveSensorsPerRoom extends Procedure {
               + " S "
               + "JOIN "
               + IotBenchConstants.TABLENAME_DEVICE
-              + " D ON S.deviceId = D.deviceId "
+              + " D ON S.device_id = D.device_id "
               + "JOIN "
               + IotBenchConstants.TABLENAME_ROOM
-              + " R ON D.room_id = R.roomId "
+              + " R ON D.room_id = R.room_id "
               + "WHERE D.status = 'Active' "
               + "GROUP BY R.name");
 

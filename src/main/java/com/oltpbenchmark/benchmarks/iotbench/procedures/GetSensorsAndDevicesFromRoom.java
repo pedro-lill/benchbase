@@ -12,15 +12,16 @@ public class GetSensorsAndDevicesFromRoom extends Procedure {
 
   public final SQLStmt getDevicesFromRoom =
       new SQLStmt(
-          "SELECT deviceId FROM " + IotBenchConstants.TABLENAME_DEVICE + " WHERE room_id = ?");
+          "SELECT device_id FROM " + IotBenchConstants.TABLENAME_DEVICE + " WHERE room_id = ?");
 
   public final SQLStmt getSensorsFromDevices =
-      new SQLStmt("SELECT * FROM " + IotBenchConstants.TABLENAME_SENSOR + "WHERE deviceId IN (??)");
+      new SQLStmt(
+          "SELECT * FROM " + IotBenchConstants.TABLENAME_SENSOR + "WHERE device_id IN (??)");
 
-  public void run(Connection conn, int roomId) throws SQLException {
+  public void run(Connection conn, int room_id) throws SQLException {
 
     try (PreparedStatement getDevicesStmt = this.getPreparedStatement(conn, getDevicesFromRoom)) {
-      getDevicesStmt.setInt(1, roomId);
+      getDevicesStmt.setInt(1, room_id);
       try (ResultSet devicesResult = getDevicesStmt.executeQuery()) {
 
         try (PreparedStatement getSensorsStmt =
@@ -29,7 +30,7 @@ public class GetSensorsAndDevicesFromRoom extends Procedure {
           long lastDeviceId = -1;
 
           while (devicesResult.next() && ctr++ < IotBenchConstants.LIMIT_DEVICES) {
-            lastDeviceId = devicesResult.getLong("deviceId");
+            lastDeviceId = devicesResult.getLong("device_id");
             getSensorsStmt.setLong(ctr, lastDeviceId);
           }
 

@@ -16,12 +16,12 @@ public class InsertActionLogRecord extends Procedure {
               + " (log_id, user_id, device_id, action, status, date) VALUES (?, ?, ?, ?, ?, now())");
 
   public void run(
-      Connection conn, int logId, int userId, int deviceId, String action, String status)
+      Connection conn, int logId, int userId, int device_id, String action, String status)
       throws SQLException {
     try (PreparedStatement stmt = this.getPreparedStatement(conn, this.insertStmt)) {
       stmt.setInt(1, logId);
       stmt.setInt(2, userId);
-      stmt.setInt(3, deviceId);
+      stmt.setInt(3, device_id);
       stmt.setString(4, action);
       stmt.setString(5, status);
       stmt.executeUpdate();

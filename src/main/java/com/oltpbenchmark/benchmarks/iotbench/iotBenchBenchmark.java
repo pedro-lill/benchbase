@@ -47,6 +47,7 @@ public final class IotBenchBenchmark extends BenchmarkModule {
   int numActionLogs;
   int numRooms;
   int numHubs;
+  int numDevices;
 
   public IotBenchBenchmark(WorkloadConfiguration workConf) {
     super(workConf);
@@ -76,7 +77,7 @@ public final class IotBenchBenchmark extends BenchmarkModule {
     List<Worker<? extends BenchmarkModule>> workers = new ArrayList<>();
     try {
       Table t = this.getCatalog().getTable(IotBenchConstants.TABLENAME_USERTABLE);
-      String userCount = SQLUtil.getMaxColSQL(this.workConf.getDatabaseType(), t, "userId");
+      String userCount = SQLUtil.getMaxColSQL(this.workConf.getDatabaseType(), t, "user_id");
 
       try (Connection metaConn = this.makeConnection();
           Statement stmt = metaConn.createStatement();
