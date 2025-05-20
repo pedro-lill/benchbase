@@ -1,63 +1,63 @@
 package com.oltpbenchmark.benchmarks.iotbench;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.GetActiveSensorsPerRoom;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.GetSensorsAndDevicesFromRoom;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertActionLogRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertSensorLogRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertSensorRecord;
-import com.oltpbenchmark.benchmarks.iotbench.procedures.InsertUserRecord;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.AutomationTrigger;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.DeviceControl;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.GetDeviceStatus;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.GetRoomOverview;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.GetSensorHistory;
+import com.oltpbenchmark.benchmarks.iotbench.procedures.SensorReading;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.RandomGenerator;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
 
   private final RandomGenerator randScan;
 
-  // Procedimentos
-  private final GetSensorsAndDevicesFromRoom procGetSensorsAndDevicesFromRoom;
-  private final InsertSensorLogRecord procInsertSensorLogRecord;
-  private final InsertSensorRecord procInsertSensorRecord;
-  private final InsertActionLogRecord procInsertActionLogRecord;
-  private final InsertUserRecord procInsertUserRecord;
-  private final GetActiveSensorsPerRoom procGetActiveSensorsPerRoom; // Novo procedimento
+  private final SensorReading procSensorReading;
+  private final DeviceControl procDeviceControl;
+  private final AutomationTrigger procAutomationTrigger;
+  private final GetDeviceStatus procGetDeviceStatus;
+  private final GetSensorHistory procGetSensorHistory;
+  private final GetRoomOverview procGetRoomOverview;
 
   public IotBenchWorker(IotBenchBenchmark benchmarkModule, int id, int init_record_count) {
     super(benchmarkModule, init_record_count);
 
     this.randScan = new RandomGenerator(init_record_count);
 
-    this.procGetSensorsAndDevicesFromRoom = this.getProcedure(GetSensorsAndDevicesFromRoom.class);
-    this.procInsertSensorLogRecord = this.getProcedure(InsertSensorLogRecord.class);
-    this.procInsertSensorRecord = this.getProcedure(InsertSensorRecord.class);
-    this.procInsertUserRecord = this.getProcedure(InsertUserRecord.class);
-    this.procInsertActionLogRecord = this.getProcedure(InsertActionLogRecord.class);
-    this.procGetActiveSensorsPerRoom = this.getProcedure(GetActiveSensorsPerRoom.class);
+    this.procSensorReading = this.getProcedure(SensorReading.class);
+    this.procDeviceControl = this.getProcedure(DeviceControl.class);
+    this.procAutomationTrigger = this.getProcedure(AutomationTrigger.class);
+    this.procGetDeviceStatus = this.getProcedure(GetDeviceStatus.class);
+    this.procGetSensorHistory = this.getProcedure(GetSensorHistory.class);
+    this.procGetRoomOverview = this.getProcedure(GetRoomOverview.class);
   }
 
   @Override
   protected TransactionStatus executeWork(Connection conn, TransactionType nextTrans)
       throws UserAbortException, SQLException {
 
-    // Identifica o tipo de transação a ser executada e chama o procedimento correspondente
     Class<? extends Procedure> procClass = nextTrans.getProcedureClass();
 
-    if (procClass.equals(GetSensorsAndDevicesFromRoom.class)) {
-      getSensorsAndDevicesFromRoom(conn);
-    } else if (procClass.equals(InsertSensorLogRecord.class)) {
-      insertSensorLogRecord(conn);
-    } else if (procClass.equals(InsertSensorRecord.class)) {
-      insertSensorRecord(conn);
-    } else if (procClass.equals(InsertUserRecord.class)) {
-      insertUserRecord(conn);
-    } else if (procClass.equals(InsertActionLogRecord.class)) {
-      insertActionLogRecord(conn);
-    } else if (procClass.equals(GetActiveSensorsPerRoom.class)) {
-      getActiveSensorsPerRoom(conn);
+    if (procClass.equals(SensorReading.class)) {
+      sensorReading(conn);
+    } else if (procClass.equals(DeviceControl.class)) {
+      deviceControl(conn);
+    } else if (procClass.equals(AutomationTrigger.class)) {
+      automationTrigger(conn);
+    } else if (procClass.equals(GetDeviceStatus.class)) {
+      getDeviceStatus(conn);
+    } else if (procClass.equals(GetSensorHistory.class)) {
+      getSensorHistory(conn);
+    } else if (procClass.equals(GetRoomOverview.class)) {
+      getRoomOverview(conn);
     } else {
       throw new RuntimeException("Unknown procedure class: " + procClass.getName());
     }
@@ -65,47 +65,49 @@ class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
     return TransactionStatus.SUCCESS;
   }
 
-  private void insertUserRecord(Connection conn) throws SQLException {
-    int user_id = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
-    String name = "User-" + user_id;
-    String email = "user" + user_id + "@iotbench.com";
-    String password_hash = "hash" + user_id;
-    int user_type = randScan.nextInt(3) + 1;
-
-    this.procInsertUserRecord.run(conn, user_id, name, email, password_hash, user_type);
+  private void sensorReading(Connection conn) throws SQLException {
+    int sensorId = randScan.nextInt(IotBenchConstants.NUM_SENSORS) + 1;
+    double value = randScan.nextDouble() * 100;
+    this.procSensorReading.run(conn, sensorId, value);
   }
 
-  private void insertActionLogRecord(Connection conn) throws SQLException {
-    int log_id = randScan.nextInt();
-    int user_id = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
-    int device_id = randScan.nextInt();
-    String action = "ACTIVATE";
-    String status = "SUCCESS";
-
-    this.procInsertActionLogRecord.run(conn, log_id, user_id, device_id, action, status);
+  private void deviceControl(Connection conn) throws SQLException {
+    int userId = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
+    int deviceId = randScan.nextInt(IotBenchConstants.NUM_DEVICES) + 1;
+    String action = randScan.nextBoolean() ? "ON" : "OFF";
+    String newStatus = action.equalsIgnoreCase("ON") ? "Active" : "Inactive";
+    this.procDeviceControl.run(conn, userId, deviceId, action, newStatus);
   }
 
-  private void getSensorsAndDevicesFromRoom(Connection conn) throws SQLException {
-    int room_id = randScan.nextInt();
-    this.procGetSensorsAndDevicesFromRoom.run(conn, room_id);
+  private void automationTrigger(Connection conn) throws SQLException {
+    int profileId = randScan.nextInt(IotBenchConstants.NUM_AUTOMATION_PROFILES) + 1;
+    int triggeringSensorId = randScan.nextInt(IotBenchConstants.NUM_SENSORS) + 1;
+    double triggerValue = randScan.nextDouble() * 50;
+    int userId = randScan.nextInt(IotBenchConstants.NUM_USERS) + 1;
+    this.procAutomationTrigger.run(conn, profileId, triggeringSensorId, triggerValue, userId);
   }
 
-  private void insertSensorLogRecord(Connection conn) throws SQLException {
-    double value = randScan.nextDouble();
-    this.procInsertSensorLogRecord.run(conn, value);
+  private void getDeviceStatus(Connection conn) throws SQLException {
+    int deviceId = randScan.nextInt(IotBenchConstants.NUM_DEVICES) + 1;
+    this.procGetDeviceStatus.run(conn, deviceId);
   }
 
-  private void insertSensorRecord(Connection conn) throws SQLException {
-    int sensor_id = randScan.nextInt();
-    String name = "Sensor-" + sensor_id;
-    int type = randScan.nextInt(5);
-    double value = randScan.nextDouble();
-    int device_id = randScan.nextInt();
-
-    this.procInsertSensorRecord.run(conn, sensor_id, name, type, value, device_id);
+  private void getSensorHistory(Connection conn) throws SQLException {
+    int sensorId = randScan.nextInt(IotBenchConstants.NUM_SENSORS) + 1;
+    long now = System.currentTimeMillis();
+    long past =
+        now
+            - (long)
+                (randScan.nextDouble()
+                    * 3600
+                    * 1000);
+    Timestamp startDate = new Timestamp(past);
+    Timestamp endDate = new Timestamp(now);
+    this.procGetSensorHistory.run(conn, sensorId, startDate, endDate);
   }
 
-  private void getActiveSensorsPerRoom(Connection conn) throws SQLException {
-    this.procGetActiveSensorsPerRoom.run(conn);
+  private void getRoomOverview(Connection conn) throws SQLException {
+    int roomId = randScan.nextInt(IotBenchConstants.NUM_ROOMS) + 1;
+    this.procGetRoomOverview.run(conn, roomId);
   }
 }

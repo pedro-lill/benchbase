@@ -1,206 +1,326 @@
+/*
+ * Copyright 2020 by OLTPBenchmark Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.oltpbenchmark.benchmarks.iotbench;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.oltpbenchmark.api.Loader;
 import com.oltpbenchmark.api.LoaderThread;
 import com.oltpbenchmark.catalog.Table;
 import com.oltpbenchmark.util.SQLUtil;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
 
+  private static final Logger LOG = LoggerFactory.getLogger(IotBenchLoader.class);
+
+  private final int numUsers;
+  private final int numHubs;
+  private final int numRooms;
   private final Random rand = new Random();
-  private static final int BATCH_SIZE = 1000;
 
   public IotBenchLoader(IotBenchBenchmark benchmark) {
     super(benchmark);
+    this.numUsers = (int) Math.round(benchmark.getWorkloadConfiguration().getScaleFactor() * 1000);
+    this.numHubs = 10; // Fixed number of hubs
+    this.numRooms = numHubs * 5; // 5 rooms per hub
   }
 
   @Override
   public List<LoaderThread> createLoaderThreads() {
+    try (Connection conn = this.benchmark.makeConnection()) {
+      clearAllTables(conn);
+    } catch (SQLException e) {
+      LOG.error("Error clearing tables", e);
+    }
+
     List<LoaderThread> threads = new ArrayList<>();
+    final CountDownLatch userLatch = new CountDownLatch(1);
+    final CountDownLatch hubLatch = new CountDownLatch(1);
 
     threads.add(
         new LoaderThread(this.benchmark) {
           @Override
-          public void load(Connection conn) throws SQLException {
-            loadUsers(conn);
+          public void load(Connection conn) {
+            loadUsers(conn, numUsers);
+          }
+
+          @Override
+          public void afterLoad() {
+            userLatch.countDown();
           }
         });
 
     threads.add(
         new LoaderThread(this.benchmark) {
           @Override
-          public void load(Connection conn) throws SQLException {
-            loadRooms(conn);
+          public void load(Connection conn) {
+            loadHubs(conn, numHubs);
+          }
+
+          @Override
+          public void afterLoad() {
+            hubLatch.countDown();
           }
         });
 
     threads.add(
         new LoaderThread(this.benchmark) {
           @Override
-          public void load(Connection conn) throws SQLException {
-            loadHubs(conn);
+          public void load(Connection conn) {
+            try {
+              hubLatch.await();
+              loadRooms(conn, numRooms, numHubs);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
           }
         });
 
     threads.add(
         new LoaderThread(this.benchmark) {
           @Override
-          public void load(Connection conn) throws SQLException {
-            loadSensors(conn);
+          public void load(Connection conn) {
+            try {
+              userLatch.await();
+              hubLatch.await();
+              loadDevices(conn, numRooms * 10, numRooms, numHubs);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
           }
         });
 
     threads.add(
         new LoaderThread(this.benchmark) {
           @Override
-          public void load(Connection conn) throws SQLException {
-            loadDevices(conn);
-          }
-        });
-
-    threads.add(
-        new LoaderThread(this.benchmark) {
-          @Override
-          public void load(Connection conn) throws SQLException {
-            loadSensorLogs(conn);
-          }
-        });
-
-    threads.add(
-        new LoaderThread(this.benchmark) {
-          @Override
-          public void load(Connection conn) throws SQLException {
-            loadActionLogs(conn);
+          public void load(Connection conn) {
+            try {
+              Thread.sleep(2000); // Small delay
+              loadSensors(conn, numRooms * 20, numRooms * 10);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
           }
         });
 
     return threads;
   }
 
-  private void loadUsers(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("usertable");
-    try (PreparedStatement ps =
-        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
-      for (int i = 0; i < this.benchmark.numUsers; i++) {
-        ps.setString(1, "User" + (i + 1));
-        ps.setString(2, "user" + (i + 1) + "@example.com");
-        ps.setString(3, "hashed_password");
-        ps.setInt(4, 1);
-        ps.addBatch();
-        if (i % BATCH_SIZE == 0) ps.executeBatch();
+  private void clearAllTables(Connection conn) throws SQLException {
+    try (Statement stmt = conn.createStatement()) {
+      stmt.execute("SET CONSTRAINTS ALL DEFERRED");
+    }
+
+    String[] tables = {
+      "actionlogs", "automationprofile", "sensorlog", "sensor", "device", "room", "hub", "usertable"
+    };
+
+    for (String table : tables) {
+      try (Statement stmt = conn.createStatement()) {
+        stmt.execute("TRUNCATE TABLE " + table + " CASCADE");
+        LOG.info("Cleared table: {}", table);
+      } catch (SQLException e) {
+        LOG.warn("Error clearing table {}: {}", table, e.getMessage());
       }
-      ps.executeBatch();
+    }
+
+    try (Statement stmt = conn.createStatement()) {
+      stmt.execute("SET CONSTRAINTS ALL IMMEDIATE");
     }
   }
 
-  private void loadRooms(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("room");
-    try (PreparedStatement ps =
-        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
-      for (int i = 0; i < this.benchmark.numRooms; i++) {
-        ps.setInt(1, i + 1);
-        ps.setString(2, "Room" + (i + 1));
-        ps.setInt(3, i % 2);
-        ps.addBatch();
-        if (i % BATCH_SIZE == 0) ps.executeBatch();
-      }
-      ps.executeBatch();
+  private PreparedStatement getInsertStatement(Connection conn, String tableName)
+      throws SQLException {
+    Table catalog_tbl = benchmark.getCatalog().getTable(tableName);
+    String sql = SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType());
+    return conn.prepareStatement(sql);
+  }
+
+  private int getNextId(Connection conn, String tableName, String idColumn) throws SQLException {
+    try (Statement stmt = conn.createStatement();
+        ResultSet rs =
+            stmt.executeQuery("SELECT COALESCE(MAX(" + idColumn + "), 0) + 1 FROM " + tableName)) {
+      return rs.next() ? rs.getInt(1) : 1;
     }
   }
 
-  private void loadHubs(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("hub");
-    try (PreparedStatement ps =
-        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
-      for (int i = 0; i < this.benchmark.numHubs; i++) {
-        ps.setInt(1, i + 1);
-        ps.setString(2, "Hub" + (i + 1));
-        ps.setString(3, i % 2 == 0 ? "ACTIVE" : "INACTIVE");
-        ps.addBatch();
-        if (i % BATCH_SIZE == 0) ps.executeBatch();
+  protected void loadUsers(Connection conn, int userCount) {
+    try {
+      int startId = getNextId(conn, "usertable", "user_id");
+
+      try (PreparedStatement stmt =
+          getInsertStatement(conn, IotBenchConstants.TABLENAME_USERTABLE)) {
+        int batchSize = 0;
+        for (int i = 0; i < userCount; i++) {
+          int userId = startId + i;
+          stmt.setInt(1, userId);
+          stmt.setString(2, "User_" + userId);
+          stmt.setString(3, "user" + userId + "@example.com");
+          stmt.setString(4, "hash_" + userId);
+          stmt.setInt(5, i % 3);
+          stmt.addBatch();
+
+          if (++batchSize % workConf.getBatchSize() == 0) {
+            stmt.executeBatch();
+            batchSize = 0;
+          }
+        }
+        if (batchSize > 0) {
+          stmt.executeBatch();
+        }
+        LOG.info("Loaded {} users", userCount);
       }
-      ps.executeBatch();
+    } catch (SQLException e) {
+      LOG.error("Error loading users", e);
     }
   }
 
-  private void loadSensors(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("sensor");
-    try (PreparedStatement ps =
-        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
-      for (int i = 0; i < this.benchmark.numSensors; i++) {
-        ps.setInt(1, i + 1);
-        ps.setString(2, "Sensor" + (i + 1));
-        ps.setString(3, "Type" + (i % 3));
-        // valoress para o campo vlaue e o device_id
-        ps.setDouble(4, 20 + rand.nextDouble() * 10);
-        ps.setInt(5, 1 + rand.nextInt(this.benchmark.numHubs));
-        ps.addBatch();
-        if (i % BATCH_SIZE == 0) ps.executeBatch();
+  protected void loadHubs(Connection conn, int hubCount) {
+    try {
+      int startId = getNextId(conn, "hub", "hub_id");
+
+      try (PreparedStatement stmt = getInsertStatement(conn, IotBenchConstants.TABLENAME_HUB)) {
+        for (int i = 0; i < hubCount; i++) {
+          int hubId = startId + i;
+          stmt.setInt(1, hubId);
+          stmt.setString(2, "Hub_" + hubId);
+          stmt.setString(3, "ACTIVE");
+          stmt.executeUpdate();
+        }
+        LOG.info("Loaded {} hubs", hubCount);
       }
-      ps.executeBatch();
+    } catch (SQLException e) {
+      LOG.error("Error loading hubs", e);
     }
   }
 
-  private void loadSensorLogs(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("sensorlog");
-    try (PreparedStatement ps =
-        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
-      for (int i = 0; i < this.benchmark.numSensorLogs; i++) {
-        int sensor_id = 1 + rand.nextInt(this.benchmark.numSensors); // FK válida
+  protected void loadRooms(Connection conn, int roomCount, int hubCount) {
+    try {
+      int startId = getNextId(conn, "room", "room_id");
 
-        ps.setInt(1, i + 1); // log_id
-        ps.setInt(2, sensor_id); // sensor_id
-        ps.setDouble(4, 20 + rand.nextDouble() * 10);
-        ps.setTimestamp(
-            3, new java.sql.Timestamp(System.currentTimeMillis() - rand.nextInt(1000000000)));
-        ps.addBatch();
-        if (i % BATCH_SIZE == 0) ps.executeBatch();
+      try (PreparedStatement stmt = getInsertStatement(conn, IotBenchConstants.TABLENAME_ROOM)) {
+        int batchSize = 0;
+        for (int i = 0; i < roomCount; i++) {
+          int roomId = startId + i;
+          stmt.setInt(1, roomId);
+          stmt.setString(2, "Room_" + roomId);
+          stmt.setInt(3, i % 5);
+          stmt.addBatch();
+
+          if (++batchSize % workConf.getBatchSize() == 0) {
+            stmt.executeBatch();
+            batchSize = 0;
+          }
+        }
+        if (batchSize > 0) {
+          stmt.executeBatch();
+        }
+        LOG.info("Loaded {} rooms", roomCount);
       }
-      ps.executeBatch();
+    } catch (SQLException e) {
+      LOG.error("Error loading rooms", e);
     }
   }
 
-  private void loadDevices(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("device");
-    try (PreparedStatement ps =
-        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
-      for (int i = 0; i < this.benchmark.numDevices; i++) {
-        ps.setInt(1, i + 1);
-        ps.setString(2, "Device" + (i + 1));
-        ps.setString(3, "Type" + (i % 3));
-        ps.setInt(4, 1 + rand.nextInt(this.benchmark.numUsers));
-        ps.addBatch();
-        if (i % BATCH_SIZE == 0) ps.executeBatch();
+  protected void loadDevices(Connection conn, int deviceCount, int roomCount, int hubCount) {
+    try {
+      int startId = getNextId(conn, "device", "device_id");
+
+      try (PreparedStatement stmt = getInsertStatement(conn, IotBenchConstants.TABLENAME_DEVICE)) {
+        int batchSize = 0;
+        for (int i = 0; i < deviceCount; i++) {
+          int deviceId = startId + i;
+          try {
+            stmt.setInt(1, deviceId);
+            stmt.setString(2, "Device_" + deviceId);
+            stmt.setString(3, rand.nextBoolean() ? "ON" : "OFF");
+            stmt.setInt(4, i % 10);
+            stmt.setInt(5, (i % roomCount) + 1);
+            stmt.setInt(6, (i % hubCount) + 1);
+            stmt.addBatch();
+
+            if (++batchSize % workConf.getBatchSize() == 0) {
+              stmt.executeBatch();
+              batchSize = 0;
+            }
+          } catch (SQLException e) {
+            if (e.getMessage().contains("duplicar valor da chave")) {
+              LOG.warn("Duplicate device_id skipped: {}", deviceId);
+              continue;
+            }
+            throw e;
+          }
+        }
+        if (batchSize > 0) {
+          stmt.executeBatch();
+        }
+        LOG.info("Loaded {} devices", deviceCount);
       }
-      ps.executeBatch();
+    } catch (SQLException e) {
+      LOG.error("Error loading devices", e);
     }
   }
 
-  private void loadActionLogs(Connection conn) throws SQLException {
-    Table catalog_tbl = benchmark.getCatalog().getTable("actionlogs");
-    try (PreparedStatement ps =
-        conn.prepareStatement(SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType()))) {
-      for (int i = 0; i < this.benchmark.numActionLogs; i++) {
-        int user_id = 1 + rand.nextInt(this.benchmark.numUsers);
-        int device_id = 1 + rand.nextInt(this.benchmark.numUsers);
-        ps.setInt(1, i + 1);
-        ps.setInt(2, user_id);
-        ps.setInt(3, device_id);
-        ps.setString(4, "ACTION_" + (i + 1));
-        ps.setString(5, (i % 2 == 0) ? "SUCCESS" : "FAILURE");
-        ps.setTimestamp(
-            6, new java.sql.Timestamp(System.currentTimeMillis() - rand.nextInt(1000000000)));
+  protected void loadSensors(Connection conn, int sensorCount, int deviceCount) {
+    try {
+      int startId = getNextId(conn, "sensor", "sensor_id");
 
-        ps.addBatch();
-        if (i % BATCH_SIZE == 0) ps.executeBatch();
+      try (PreparedStatement stmt = getInsertStatement(conn, IotBenchConstants.TABLENAME_SENSOR)) {
+        int batchSize = 0;
+        for (int i = 0; i < sensorCount; i++) {
+          int sensorId = startId + i;
+          try {
+            stmt.setInt(1, sensorId);
+            stmt.setString(2, "Sensor_" + sensorId);
+            stmt.setInt(3, i % 5);
+            stmt.setDouble(4, rand.nextDouble() * 100);
+            stmt.setInt(5, (i % deviceCount) + 1);
+            stmt.addBatch();
+
+            if (++batchSize % workConf.getBatchSize() == 0) {
+              stmt.executeBatch();
+              batchSize = 0;
+            }
+          } catch (SQLException e) {
+            if (e.getMessage().contains("duplicar valor da chave")) {
+              LOG.warn("Duplicate sensor_id skipped: {}", sensorId);
+              continue;
+            }
+            throw e;
+          }
+        }
+        if (batchSize > 0) {
+          stmt.executeBatch();
+        }
+        LOG.info("Loaded {} sensors", sensorCount);
       }
-      ps.executeBatch();
+    } catch (SQLException e) {
+      LOG.error("Error loading sensors", e);
     }
   }
 }

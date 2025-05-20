@@ -1,44 +1,94 @@
-/*
- * Copyright 2020 by OLTPBenchmark Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
- package com.oltpbenchmark.benchmarks.iotbench.procedures;
+import com.oltpbenchmark.api.Procedure;
+import com.oltpbenchmark.api.SQLStmt;
+import com.oltpbenchmark.benchmarks.iotbench.IotBenchConstants;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
- import com.oltpbenchmark.api.Procedure;
- import com.oltpbenchmark.api.SQLStmt;
- import com.oltpbenchmark.benchmarks.iotbench.IotBenchConstants;
- import java.sql.Connection;
- import java.sql.PreparedStatement;
- import java.sql.ResultSet;
- import java.sql.SQLException;
+public class AutomationTrigger extends Procedure {
 
- public class GetUsers extends Procedure {
+    private static final Logger LOG = LoggerFactory.getLogger(AutomationTrigger.class);
 
-   public final SQLStmt getUsers =
-       new SQLStmt(
-           "SELECT * FROM "
-               + IotBenchConstants.TABLENAME_USERTABLE + ";"
-               );
+    public final SQLStmt getSensorValueStmt =
+            new SQLStmt(
+                    String.format(
+                            "SELECT value FROM %s WHERE sensor_id = ? ORDER BY date DESC LIMIT 1",
+                            IotBenchConstants.TABLENAME_SENSOR_LOG));
 
-   public void run(Connection conn, long uid) throws SQLException {
-     try (PreparedStatement stmt = this.getPreparedStatement(conn, getTweets)) {
-       stmt.setLong(1, uid);
-       try (ResultSet rs = stmt.executeQuery()) {
-         assert rs != null;
-       }
-     }
-   }
- }
+    public final SQLStmt getAutomationProfileStmt =
+            new SQLStmt(
+                    String.format(
+                            "SELECT device_id, command FROM %s WHERE profile_id = ? AND status = 'Active'",
+                            IotBenchConstants.TABLENAME_AUTOMATION_PROFILE));
+
+    public final SQLStmt updateDeviceStatusStmt =
+            new SQLStmt(
+                    String.format(
+                            "UPDATE %s SET status = ? WHERE device_id = ?",
+                            IotBenchConstants.TABLENAME_DEVICE));
+
+    public final SQLStmt insertActionLogStmt =
+            new SQLStmt(
+                    String.format(
+                            "INSERT INTO %s (user_id, device_id, action, status, date) VALUES (?, ?, ?, ?, ?)",
+                            IotBenchConstants.TABLENAME_ACTION_LOGS));
+
+    public void run(Connection conn, int profileId, int triggeringSensorId, double triggerValue, int userId) throws SQLException {
+        double currentSensorValue = -1;
+        try (PreparedStatement stmt = this.getPreparedStatement(conn, getSensorValueStmt)) {
+            stmt.setInt(1, triggeringSensorId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    currentSensorValue = rs.getDouble("value");
+                }
+            }
+        } catch (SQLException e) {
+            LOG.error("Erro ao obter valor do sensor {}: {}", triggeringSensorId, e.getMessage());
+            throw e;
+        }
+
+        if (currentSensorValue != -1 && currentSensorValue > triggerValue) {
+            try (PreparedStatement stmt = this.getPreparedStatement(conn, getAutomationProfileStmt)) {
+                stmt.setInt(1, profileId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        int targetDeviceId = rs.getInt("device_id");
+                        String command = rs.getString("command");
+                        String newStatus = (command.equalsIgnoreCase("ON")) ? "Active" : "Inactive";
+
+                        try (PreparedStatement updateStmt = this.getPreparedStatement(conn, updateDeviceStatusStmt)) {
+                            updateStmt.setString(1, newStatus);
+                            updateStmt.setInt(2, targetDeviceId);
+                            updateStmt.executeUpdate();
+                            LOG.info("Automação profile_id={} acionada. Dispositivo device_id={} alterado para status={}", profileId, targetDeviceId, newStatus);
+
+                            try (PreparedStatement insertLogStmt = this.getPreparedStatement(conn, insertActionLogStmt)) {
+                                insertLogStmt.setInt(1, userId);
+                                insertLogStmt.setInt(2, targetDeviceId);
+                                insertLogStmt.setString(3, "Automation Triggered: " + command);
+                                insertLogStmt.setString(4, newStatus);
+                                insertLogStmt.setTimestamp(5, new Timestamp(new Date().getTime()));
+                                insertLogStmt.executeUpdate();
+                            } catch (SQLException e) {
+                                LOG.error("Erro ao inserir log de ação para automação: {}", e.getMessage());
+                            }
+
+                        } catch (SQLException e) {
+                            LOG.error("Erro ao atualizar status do dispositivo {} pela automação: {}", targetDeviceId, e.getMessage());
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                LOG.error("Erro ao buscar perfil de automação {}: {}", profileId, e.getMessage());
+                throw e;
+            }
+        }
+    }
+}

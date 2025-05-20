@@ -37,9 +37,7 @@ CREATE TABLE device (
     status VARCHAR(50) NOT NULL,
     device_type INT NOT NULL,
     room_id INT,
-    hub_id INT,
-    FOREIGN KEY (room_id) REFERENCES room (room_id) ON DELETE CASCADE,
-    FOREIGN KEY (hub_id) REFERENCES hub (hub_id) ON DELETE CASCADE
+    hub_id INT
 );
 
 -- Tabela sensor
@@ -48,8 +46,7 @@ CREATE TABLE sensor (
     name VARCHAR(255) NOT NULL,
     type INT NOT NULL,
     value DECIMAL(10, 2) NOT NULL,
-    device_id INT,
-    FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE
+    device_id INT
 );
 
 -- Tabela sensorlog
@@ -57,8 +54,7 @@ CREATE TABLE sensorlog (
     id SERIAL PRIMARY KEY,
     sensor_id INT NOT NULL,
     value DECIMAL(10, 2) NOT NULL,
-    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sensor_id) REFERENCES sensor (sensor_id) ON DELETE CASCADE
+    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE automationprofile (
@@ -66,9 +62,7 @@ CREATE TABLE automationprofile (
     device_id INT NOT NULL,
     user_id INT NOT NULL,
     status VARCHAR(50) NOT NULL,
-    command VARCHAR(255) NOT NULL,
-    FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES usertable  (user_id) ON DELETE CASCADE
+    command VARCHAR(255) NOT NULL
 );
 
 -- Tabela actionlogs
@@ -78,7 +72,5 @@ CREATE TABLE actionlogs (
     device_id INT NOT NULL,
     action VARCHAR(255) NOT NULL,
     status VARCHAR(50) NOT NULL,
-    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES usertable  (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (device_id) REFERENCES device (device_id) ON DELETE CASCADE
+    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

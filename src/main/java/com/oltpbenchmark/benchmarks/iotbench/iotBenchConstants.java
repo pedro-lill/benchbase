@@ -12,11 +12,14 @@ public abstract class IotBenchConstants {
   public static final String TABLENAME_AUTOMATION_PROFILE = "automationprofile";
   public static final String TABLENAME_ACTION_LOGS = "actionlogs";
 
-  public static final int NUM_USERS = 1000;
-  public static final int NUM_HUBS = 100;
-  public static final int NUM_ROOMS = 500;
-  public static final int NUM_DEVICES = 2000;
-  public static final int NUM_SENSORS = 5000;
+  public static final int NUM_USERS = 100;
+  public static final int NUM_HUBS = 10;
+  public static final int NUM_ROOMS = 50;
+  public static final int NUM_DEVICES = 200;
+  public static final int NUM_SENSORS = 500;
+  public static final int NUM_AUTOMATION_PROFILES = 100;
+  public static final int NUM_ACTION_LOGS = 1000;
+  public static final int NUM_SENSOR_LOGS = 1000;
 
   // Record count baseline
   public static final int RECORD_COUNT = 1000;

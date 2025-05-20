@@ -4,13 +4,12 @@
     <!-- Connection details -->
     <type>postgres</type>
     <driver>org.postgresql.Driver</driver>
-    <url>jdbc:postgresql://localhost:5432/iotbench?rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=True&amp;sslMode=DISABLED</url>
+    <url>jdbc:postgresql://localhost:5432/iotbench?rewriteBatchedStatements=true&amp;ApplicationName=iotbench&amp;sslMode=disable</url>
     <username>postgres</username>
     <password>password</password>
     <reconnectOnConnectionFailure>true</reconnectOnConnectionFailure>
     <isolation>TRANSACTION_SERIALIZABLE</isolation>
     <batchsize>1000</batchsize>
-    <scalefactor>1.0</scalefactor>
 
     <!-- Scalefactor in iotbench is *1000 the number of rows in the USERTABLE-->
     <scalefactor>1</scalefactor>
@@ -34,22 +33,22 @@
     <!-- iotbench Procedures declaration -->
     <transactiontypes>
         <transactiontype>
-            <name>InsertSensorRecord</name>
+            <name>SensorReading</name>
         </transactiontype>
         <transactiontype>
-            <name>InsertUserRecord</name>
+            <name>DeviceControl</name>
         </transactiontype>
         <transactiontype>
-            <name>InsertActionLogRecord</name>
+            <name>AutomationTrigger</name>
         </transactiontype>
         <transactiontype>
-            <name>GetActiveSensorsPerRoom </name>
+            <name>GetDeviceStatus</name>
         </transactiontype>
         <transactiontype>
-            <name>GetSensorsAndDevicesFromRoom</name>
+            <name>GetSensorHistory</name>
         </transactiontype>
         <transactiontype>
-            <name>InsertSensorLogRecord</name>
+            <name>GetRoomOverview</name>
         </transactiontype>
     </transactiontypes>
 </parameters>
