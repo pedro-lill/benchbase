@@ -46,8 +46,8 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
   public IotBenchLoader(IotBenchBenchmark benchmark) {
     super(benchmark);
     this.numUsers = (int) Math.round(benchmark.getWorkloadConfiguration().getScaleFactor() * 1000);
-    this.numHubs = 10; // Fixed number of hubs
-    this.numRooms = numHubs * 5; // 5 rooms per hub
+    this.numHubs = (int) Math.round(benchmark.getWorkloadConfiguration().getScaleFactor() * 100);
+    this.numRooms = (int) Math.round(benchmark.getWorkloadConfiguration().getScaleFactor() * 500);
   }
 
   @Override
@@ -109,6 +109,19 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
               userLatch.await();
               hubLatch.await();
               loadDevices(conn, numRooms * 10, numRooms, numHubs);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        });
+
+    threads.add(
+        new LoaderThread(this.benchmark) {
+          @Override
+          public void load(Connection conn) {
+            try {
+              Thread.sleep(2000); // Small delay
+              loadAutomationProfiles(conn, numRooms * 10);
             } catch (InterruptedException e) {
               throw new RuntimeException(e);
             }
@@ -283,6 +296,60 @@ public final class IotBenchLoader extends Loader<IotBenchBenchmark> {
       }
     } catch (SQLException e) {
       LOG.error("Error loading devices", e);
+    }
+  }
+
+  protected void loadAutomationProfiles(Connection conn, int automationProfileCount) {
+    try {
+      int effectiveNumDevices =
+          (int) Math.round(benchmark.getWorkloadConfiguration().getScaleFactor() * 10);
+      int effectiveNumUsers =
+          (int) Math.round(benchmark.getWorkloadConfiguration().getScaleFactor() * 1000);
+
+      if (effectiveNumDevices == 0) effectiveNumDevices = 1;
+      if (effectiveNumUsers == 0) effectiveNumUsers = 1;
+
+      int startId = getNextId(conn, "automationprofile", "profile_id");
+
+      Table catalog_tbl =
+          benchmark.getCatalog().getTable(IotBenchConstants.TABLENAME_AUTOMATION_PROFILE);
+
+      String insertSQL = SQLUtil.getInsertSQL(catalog_tbl, this.getDatabaseType());
+      LOG.info("Generated SQL for automation profiles: {}", insertSQL);
+
+      try (PreparedStatement stmt = conn.prepareStatement(insertSQL)) {
+        int batchSize = 0;
+        for (int i = 0; i < automationProfileCount; i++) {
+          int profileId = startId + i;
+          int deviceId =
+              1 + rand.nextInt(effectiveNumDevices); // Relaciona com um dispositivo existente
+          int userId = 1 + rand.nextInt(effectiveNumUsers); // Relaciona com um usuário existente
+
+          stmt.setInt(1, profileId);
+          stmt.setInt(2, deviceId);
+          stmt.setInt(3, userId);
+          stmt.setString(4, rand.nextBoolean() ? "ACTIVE" : "INACTIVE");
+          stmt.setString(5, rand.nextBoolean() ? "TURN_ON" : "TURN_OFF"); // Exemplo de comando
+
+          stmt.addBatch();
+
+          if (++batchSize % workConf.getBatchSize() == 0) {
+            int[] rowsAffected = stmt.executeBatch();
+            LOG.debug(
+                "Executed batch for automation profiles. Rows affected: {}", rowsAffected.length);
+            batchSize = 0;
+          }
+        }
+        if (batchSize > 0) {
+          int[] rowsAffected = stmt.executeBatch();
+          LOG.debug(
+              "Executed final batch for automation profiles. Rows affected: {}",
+              rowsAffected.length);
+        }
+        LOG.info("Loaded {} automation profiles", automationProfileCount);
+      }
+    } catch (SQLException e) {
+      LOG.error("Error loading automation profiles", e);
     }
   }
 

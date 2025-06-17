@@ -16,20 +16,18 @@
 
 package com.oltpbenchmark.benchmarks.iotbench;
 
+import com.oltpbenchmark.WorkloadConfiguration;
+import com.oltpbenchmark.api.BenchmarkModule;
+import com.oltpbenchmark.api.Loader;
+import com.oltpbenchmark.api.Worker;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.oltpbenchmark.WorkloadConfiguration;
-import com.oltpbenchmark.api.BenchmarkModule;
-import com.oltpbenchmark.api.Loader;
-import com.oltpbenchmark.api.Worker;
 
 public final class IotBenchBenchmark extends BenchmarkModule {
 

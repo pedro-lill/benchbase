@@ -1,5 +1,8 @@
 package com.oltpbenchmark.benchmarks.iotbench.procedures;
 
+import com.oltpbenchmark.api.Procedure;
+import com.oltpbenchmark.api.SQLStmt;
+import com.oltpbenchmark.benchmarks.iotbench.IotBenchConstants;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,13 +10,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.oltpbenchmark.api.Procedure;
-import com.oltpbenchmark.api.SQLStmt;
-import com.oltpbenchmark.benchmarks.iotbench.IotBenchConstants;
 
 public class GetSensorHistory extends Procedure {
 

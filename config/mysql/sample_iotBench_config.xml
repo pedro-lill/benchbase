@@ -4,8 +4,8 @@
     <!-- Connection details -->
     <type>MYSQL</type>
     <driver>com.mysql.cj.jdbc.Driver</driver>
-    <url>jdbc:mysql://localhost:3306/benchbase?rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=True&amp;sslMode=DISABLED</url>
-    <username>admin</username>
+    <url>jdbc:mysql://localhost:3306/iotbench?rewriteBatchedStatements=true&amp;allowPublicKeyRetrieval=True&amp;sslMode=DISABLED</url>
+    <username>root</username>
     <password>password</password>
     <reconnectOnConnectionFailure>true</reconnectOnConnectionFailure>
     <isolation>TRANSACTION_SERIALIZABLE</isolation>
@@ -27,25 +27,24 @@
         </work>
     </works>
 
-    <!-- IotBench Procedures declaration -->
-      <transactiontypes>
+    <transactiontypes>
         <transactiontype>
-            <name>InsertSensorLogRecord</name>
+            <name>SensorReading</name>
         </transactiontype>
         <transactiontype>
-            <name>InsertActionLogRecord</name>
+            <name>DeviceControl</name>
         </transactiontype>
         <transactiontype>
-            <name>InsertUserRecord</name>
+            <name>AutomationTrigger</name>
         </transactiontype>
         <transactiontype>
-            <name>GetActiveSensorsPerRoom </name>
+            <name>GetDeviceStatus</name>
         </transactiontype>
         <transactiontype>
-            <name>GetSensorsAndDevicesFromRoom</name>
+            <name>GetSensorHistory</name>
         </transactiontype>
         <transactiontype>
-            <name>InsertSensorRecord</name>
+            <name>GetRoomOverview</name>
         </transactiontype>
     </transactiontypes>
 </parameters>

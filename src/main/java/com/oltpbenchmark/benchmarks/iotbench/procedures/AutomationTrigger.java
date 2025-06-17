@@ -15,9 +15,7 @@ import com.oltpbenchmark.api.SQLStmt;
 import com.oltpbenchmark.benchmarks.iotbench.IotBenchConstants;
 
 public class AutomationTrigger extends Procedure {
-
   private static final Logger LOG = LoggerFactory.getLogger(AutomationTrigger.class);
-
   public final SQLStmt getSensorValueStmt =
       new SQLStmt(
           String.format(
@@ -57,8 +55,7 @@ public class AutomationTrigger extends Procedure {
       throw e;
     }
 
-    if (currentSensorValue != -1
-        && currentSensorValue > triggerValue) {
+    if (currentSensorValue != -1 && currentSensorValue > triggerValue) {
       try (PreparedStatement stmt = this.getPreparedStatement(conn, getAutomationProfileStmt)) {
         stmt.setInt(1, profileId);
         try (ResultSet rs = stmt.executeQuery()) {
@@ -72,12 +69,12 @@ public class AutomationTrigger extends Procedure {
               updateStmt.setString(1, newStatus);
               updateStmt.setInt(2, targetDeviceId);
               updateStmt.executeUpdate();
-              LOG.info(
+              {LOG.info(
                   "Automação profile_id={} acionada. Dispositivo device_id={} alterado para status={}",
                   profileId,
                   targetDeviceId,
                   newStatus);
-
+              }
               try (PreparedStatement insertLogStmt =
                   this.getPreparedStatement(conn, insertActionLogStmt)) {
                 insertLogStmt.setInt(1, userId);
@@ -89,7 +86,6 @@ public class AutomationTrigger extends Procedure {
               } catch (SQLException e) {
                 LOG.error("Erro ao inserir log de ação para automação: {}", e.getMessage());
               }
-
             } catch (SQLException e) {
               LOG.error(
                   "Erro ao atualizar status do dispositivo {} pela automação: {}",

@@ -1,9 +1,5 @@
 package com.oltpbenchmark.benchmarks.iotbench;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-
 import com.oltpbenchmark.api.Procedure;
 import com.oltpbenchmark.api.Procedure.UserAbortException;
 import com.oltpbenchmark.api.TransactionType;
@@ -15,6 +11,9 @@ import com.oltpbenchmark.benchmarks.iotbench.procedures.GetSensorHistory;
 import com.oltpbenchmark.benchmarks.iotbench.procedures.SensorReading;
 import com.oltpbenchmark.types.TransactionStatus;
 import com.oltpbenchmark.util.RandomGenerator;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 
 class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
 
@@ -95,12 +94,7 @@ class IotBenchWorker extends com.oltpbenchmark.api.Worker<IotBenchBenchmark> {
   private void getSensorHistory(Connection conn) throws SQLException {
     int sensorId = randScan.nextInt(IotBenchConstants.NUM_SENSORS) + 1;
     long now = System.currentTimeMillis();
-    long past =
-        now
-            - (long)
-                (randScan.nextDouble()
-                    * 3600
-                    * 1000);
+    long past = now - (long) (randScan.nextDouble() * 3600 * 1000);
     Timestamp startDate = new Timestamp(past);
     Timestamp endDate = new Timestamp(now);
     this.procGetSensorHistory.run(conn, sensorId, startDate, endDate);
